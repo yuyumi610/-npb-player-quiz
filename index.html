@@ -1,376 +1,269 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>プロ野球チップス風 NPB選手当てクイズ</title>
-<style>*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:linear-gradient(135deg,#06152e,#123e68 60%,#071a32);font-family:"Yu Gothic",sans-serif;color:#17243a}
-.wrap{max-width:760px;margin:0 auto;padding:18px}
-.top{text-align:center;color:#fff;padding:25px 12px}
-.brand{font-size:30px;font-weight:900;letter-spacing:2px;text-shadow:0 3px 8px #0008}
-.sub{font-size:14px;color:#f5d783;letter-spacing:3px;margin-top:8px}.panel{background:#fff;border-radius:0 0 18px 18px;padding:20px;box-shadow:0 8px 24px #0002}
-.screen{display:none}
-.screen.active{display:block}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.btn{background:linear-gradient(135deg,#c99b35,#f5d783);color:#17243a;border:0;border-radius:12px;padding:13px 20px;font-weight:bold;box-shadow:0 4px 10px #0003}
-.btn:active{transform:scale(.97)}
-.choice button{
-background:#123e68;
-color:white;
-border:2px solid #d4ad50;
-border-radius:12px;
-padding:14px;
-font-weight:bold;
-}
-.card{
-border:3px solid #d4ad50;
-border-radius:16px;
-box-shadow:0 8px 20px #0004;
-}
-.btn{border:0;border-radius:12px;padding:13px 16px;background:#222;color:#fff;font-weight:700;font-size:15px;cursor:pointer}
-.btn.red{background:#b5121b}
-.btn.gold{background:#b8860b}
-.btn.light{background:#eef0f4;color:#222}
-.btn:disabled{opacity:.45}
-.choice{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
-.choice button{padding:14px 8px;border:2px solid #ddd;background:#fff;border-radius:12px;font-weight:800}
-.choice button.sel{border-color:#b5121b;background:#fff4f4}
-.select{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:15px}
-.card{margin-top:14px;background:linear-gradient(150deg,#fff,#f4ead0);border:8px solid #d7b65a;border-radius:18px;box-shadow:0 10px 25px #0003;overflow:hidden}
-.cardhead{
-background:linear-gradient(90deg,#8f1018,#d51d2a,#8f1018);
-color:#fff;
-padding:14px 16px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-font-weight:900;
-font-size:17px;
-border-bottom:3px solid #d4ad50;
-text-shadow:0 2px 4px #0005;
-}
-.cardbody{padding:18px}
-.hint{border-left:5px solid #b5121b;background:#fff;border-radius:8px;padding:12px;margin:9px 0;box-shadow:0 2px 8px #0001}
-.hint small{display:block;color:#777;margin-bottom:3px}
-.answer{display:flex;gap:8px;margin-top:14px}
-.answer input{flex:1;min-width:0;padding:13px;border:2px solid #bbb;border-radius:10px;font-size:16px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
-.stat{background:#f1f3f6;border-radius:12px;padding:10px;text-align:center}
-.stat b{font-size:20px;display:block}
-.result{margin-top:12px;padding:14px;border-radius:12px;background:#fff5d8}
-.ok{background:#eaf8ee}
-.ng{background:#fff0f0}
-.tiny{font-size:12px;color:#666;line-height:1.6}
-.progress{height:8px;background:#eee;border-radius:99px;overflow:hidden;margin:10px 0}
-.bar{height:100%;background:#b5121b;width:0}
-.footer{margin-top:14px;font-size:11px;color:#666;text-align:center}
-@media(max-width:520px){.choice{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.wrap{padding:9px}}
-</style>
-</head>
-<body>
-<div class="wrap">
-<div class="top">
-<div class="brand">⚾ プロ野球チップス風</div>
-<div class="sub">NPB 選手当てクイズ 2026</div>
-</div>
-<div class="panel">
-<section id="start" class="screen active">
-<h2>出題範囲を選択</h2>
-<div class="choice">
-<button data-mode="all" class="sel">12球団</button>
-<button data-mode="central">セ・リーグ</button>
-<button data-mode="pacific">パ・リーグ</button>
-</div>
-<label>球団を限定する場合</label>
-<select id="team" class="select">
-<option value="all">12球団すべて</option>
-</select>
-<p class="tiny">※2026年NPB公式「支配下選手一覧」を基礎データにした自己完結版。まずは検証済み選手を収録しています。</p>
-<button id="startBtn" class="btn red" style="width:100%;margin-top:8px">クイズ開始</button>
-</section>
-
-<section id="game" class="screen">
-<div class="stats">
-<div class="stat"><span>得点</span><b id="score">0</b></div>
-<div class="stat"><span>問題</span><b id="qno">1</b></div>
-<div class="stat"><span>正解率</span><b id="rate">0%</b></div>
-</div>
-<div class="progress"><div id="bar" class="bar"></div></div>
-<div class="card">
-<div class="cardhead"><span id="teamName">TEAM</span><span id="num">--</span></div>
-<div class="cardbody">
-<div id="hints"></div>
-<div class="answer">
-<input id="answer" autocomplete="off" placeholder="選手名を入力">
-<button id="answerBtn" class="btn red">回答</button>
-</div>
-<div id="result"></div>
-</div>
-</div>
-<div class="row" style="margin-top:12px">
-<button id="hintBtn" class="btn gold">次のヒント</button>
-<button id="nextBtn" class="btn light" disabled>次の問題</button>
-<button id="backBtn" class="btn light">設定へ戻る</button>
-</div>
-</section>
-
-<section id="finish" class="screen">
-<h2>結果</h2>
-<div class="result ok">
-<div>最終得点</div>
-<div style="font-size:34px;font-weight:900" id="finalScore">0</div>
-<div id="finalText"></div>
-</div>
-<button id="againBtn" class="btn red" style="width:100%;margin-top:14px">もう一度遊ぶ</button>
-</section>
-
-<div class="footer">データ基準：NPB公式 2026年度 支配下選手登録一覧 ／ 外部通信なし</div>
-</div>
-</div>
-
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>プロ野球チップス風 NPB選手当てクイズ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#f6f0df,#e9edf5);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;color:#222}.wrap{max-width:760px;margin:auto;padding:16px}.top{background:#b5121b;color:#fff;border-radius:18px 18px 0 0;padding:18px 20px;box-shadow:0 8px 24px #0002}.brand{font-weight:900;font-size:24px;letter-spacing:.04em}.sub{font-size:12px;opacity:.9;margin-top:4px}.panel{background:#fff;border-radius:0 0 18px 18px;padding:20px;box-shadow:0 8px 24px #0002}.screen{display:none}.screen.active{display:block}.row{display:flex;gap:10px;flex-wrap:wrap}.btn{border:0;border-radius:12px;padding:13px 16px;background:#222;color:#fff;font-weight:700;font-size:15px;cursor:pointer}.btn.red{background:#b5121b}.btn.gold{background:#b8860b}.btn.light{background:#eef0f4;color:#222}.btn:disabled{opacity:.45}.choice{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.choice button{padding:14px 8px;border:2px solid #ddd;background:#fff;border-radius:12px;font-weight:800}.choice button.sel{border-color:#b5121b;background:#fff4f4}.select{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:15px}.card{margin-top:14px;background:linear-gradient(150deg,#fff,#f4ead0);border:8px solid #d7b65a;border-radius:18px;box-shadow:0 10px 25px #0003;overflow:hidden}.cardhead{background:#b5121b;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;font-weight:900}.cardbody{padding:18px}.hint{border-left:5px solid #b5121b;background:#fff;border-radius:8px;padding:12px;margin:9px 0;box-shadow:0 2px 8px #0001}.hint small{display:block;color:#777;margin-bottom:3px}.qgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.qgrid button{border:1px solid #d8c89e;background:#fffaf0;border-radius:10px;padding:10px 8px;font-weight:700;color:#5b4516}.qgrid button:disabled{opacity:.4}.difficulty{border:1px solid #d8c89e;border-radius:11px;margin:9px 0;overflow:hidden}.difficulty-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;padding:13px 14px;border:0;background:#fff8e8;color:#5b4516;font-weight:900;font-size:15px;text-align:left;cursor:pointer}.difficulty-body{padding:10px;background:#fff}.difficulty-body .qgrid{margin:0}.giveup{background:#555;color:#fff}.qaLog{background:#f7f7f7;border-radius:10px;padding:10px;margin:8px 0;font-size:14px}.qaLog b{color:#8d1420}.answer{display:flex;gap:8px;margin-top:14px}.answer input{flex:1;min-width:0;padding:13px;border:2px solid #bbb;border-radius:10px;font-size:16px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat{background:#f1f3f6;border-radius:12px;padding:10px;text-align:center}.stat b{font-size:20px;display:block}.result{margin-top:12px;padding:14px;border-radius:12px;background:#fff5d8}.ok{background:#eaf8ee}.ng{background:#fff0f0}.tiny{font-size:12px;color:#666;line-height:1.6}.progress{height:8px;background:#eee;border-radius:99px;overflow:hidden;margin:10px 0}.bar{height:100%;background:#b5121b;width:0}.footer{margin-top:14px;font-size:11px;color:#666;text-align:center}@media(max-width:520px){.choice{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.wrap{padding:9px}}
+</style></head><body><div class="wrap"><div class="top"><div class="brand">⚾ プロ野球チップス風</div><div class="sub">NPB 選手当てクイズ 2026</div></div><div class="panel">
+<section id="start" class="screen active"><h2>出題範囲を選択</h2><div class="choice"><button data-mode="all" class="sel">12球団</button><button data-mode="central">セ・リーグ</button><button data-mode="pacific">パ・リーグ</button></div><label>球団を限定する場合</label><select id="team" class="select"><option value="all">12球団すべて</option></select><p class="tiny">※2026年NPB公式「支配下選手一覧」を基礎データにします。開始時に公式データを読み込み、育成選手は除外します。</p><div id="dataStatus" class="tiny" style="margin:6px 0">公式データ確認中…</div><button id="startBtn" class="btn red" style="width:100%;margin-top:8px">クイズ開始</button></section>
+<section id="game" class="screen"><div class="stats"><div class="stat"><span>得点</span><b id="score">0</b></div><div class="stat"><span>問題</span><b id="qno">1</b></div><div class="stat"><span>正解率</span><b id="rate">0%</b></div></div><div class="progress"><div id="bar" class="bar"></div></div><div class="card"><div class="cardhead"><span>？？？選手</span><span>シークレット</span></div><div class="cardbody"><h3 style="margin:4px 0">聞きたいことを質問しよう</h3><p class="tiny">難易度を選ぶと質問が開きます。同じ項目は1回だけ質問できます。</p><div id="questionButtons"></div><div id="hints"></div><div class="answer"><input id="answer" autocomplete="off" placeholder="選手名を入力"><button id="answerBtn" class="btn red">回答</button><button id="giveUpBtn" class="btn giveup">GIVE UP</button></div><div id="result"></div></div></div><div class="row" style="margin-top:12px"><button id="nextBtn" class="btn light" disabled>次の問題</button><button id="backBtn" class="btn light">設定へ戻る</button></div></section>
+<section id="finish" class="screen"><h2>結果</h2><div class="result ok"><div>最終得点</div><div style="font-size:34px;font-weight:900" id="finalScore">0</div><div id="finalText"></div></div><button id="againBtn" class="btn red" style="width:100%;margin-top:14px">もう一度遊ぶ</button></section>
+<div class="footer">データ基準：NPB公式 2026年度 支配下選手登録一覧　／　外部通信なし</div></div></div>
 <script>
 const TEAMS={
-"阪神タイガース":"central",
-"横浜DeNAベイスターズ":"central",
-"読売ジャイアンツ":"central",
-"中日ドラゴンズ":"central",
-"広島東洋カープ":"central",
-"東京ヤクルトスワローズ":"central",
-"福岡ソフトバンクホークス":"pacific",
-"北海道日本ハムファイターズ":"pacific",
-"オリックス・バファローズ":"pacific",
-"東北楽天ゴールデンイーグルス":"pacific",
-"埼玉西武ライオンズ":"pacific",
-"千葉ロッテマリーンズ":"pacific"
+"阪神タイガース":"central","横浜DeNAベイスターズ":"central","読売ジャイアンツ":"central","中日ドラゴンズ":"central","広島東洋カープ":"central","東京ヤクルトスワローズ":"central","福岡ソフトバンクホークス":"pacific","北海道日本ハムファイターズ":"pacific","オリックス・バファローズ":"pacific","東北楽天ゴールデンイーグルス":"pacific","埼玉西武ライオンズ":"pacific","千葉ロッテマリーンズ":"pacific"};
+const NAME_READINGS={
+'岩崎 優':'いわざき ゆう','岩貞 祐太':'いわさだ ゆうた','西 勇輝':'にし ゆうき','伊原 陵人':'いはら りょうと','下村 海翔':'しもむら かいと','大竹 耕太郎':'おおたけ こうたろう','伊藤 将司':'いとう まさし','才木 浩人':'さいき ひろと','村上 頌樹':'むらかみ しょうき','桐敷 拓馬':'きりしき たくま',
+'東 克樹':'あずま かつき','竹田 祐':'たけだ ゆう','伊勢 大夢':'いせ ひろむ','石田 健大':'いしだ けんた','島田 舜也':'しまだ しゅんや','大貫 晋一':'おおぬき しんいち','小園 健太':'こぞの けんた','山﨑 康晃':'やまざき やすあき','坂本 裕哉':'さかもと ゆうや','牧 秀悟':'まき しゅうご',
+'田中 将大':'たなか まさひろ','大勢':'たいせい','西舘 勇陽':'にしだて ゆうひ','山﨑 伊織':'やまさき いおり','戸郷 翔征':'とごう しょうせい','田和 廉':'たわ れん','赤星 優志':'あかほし ゆうじ','中川 皓太':'なかがわ こうた','則本 昂大':'のりもと たかひろ','Ａ．バルドナード':'えー ばるどなーど',
+'中西 聖輝':'なかにし せいき','草加 勝':'くさか しょう','柳 裕也':'やなぎ ゆうや','髙橋 宏斗':'たかはし ひろと','涌井 秀章':'わくい ひであき','金丸 夢斗':'かねまる ゆめと','大野 雄大':'おおの ゆうだい','松木平 優太':'まつきひら ゆうた','根尾 昂':'ねお あきら','清水 達也':'しみず たつや',
+'齊藤 汰直':'さいとう たいち','森浦 大輔':'もりうら だいすけ','大瀬良 大地':'おおせら だいち','森 翔平':'もり しょうへい','森下 暢仁':'もりした まさと','床田 寛樹':'とこだ ひろき','栗林 良吏':'くりばやし りょうじ','中﨑 翔太':'なかざき しょうた','黒原 拓未':'くろはら たくみ','益田 武尚':'ますだ たけひさ',
+'石山 泰稚':'いしやま やすたか','中村 優斗':'なかむら ゆうと','清水 昇':'しみず のぼる','奥川 恭伸':'おくがわ やすのぶ','石川 雅規':'いしかわ まさのり','木澤 尚文':'きざわ なおふみ','吉村 貢司郎':'よしむら こうじろう','松本 健吾':'まつもと けんご','小川 泰弘':'おがわ やすひろ','田口 麗斗':'たぐち かずと',
+'Ｃ．スチュワート・ジュニア':'しー すちゅわーと じゅにあ','上沢 直之':'うわさわ なおゆき','津森 宥紀':'つもり ゆうき','稲川 竜汰':'いながわ りゅうた','東浜 巨':'ひがしはま なお','徐 若熙':'じょ るーしー','大津 亮介':'おおつ りょうすけ','村上 泰斗':'むらかみ たいと','岩井 俊介':'いわい しゅんすけ','安德 駿':'あんとく しゅん',
+'矢澤 宏太':'やざわ こうた','生田目 翼':'なばため つばさ','加藤 貴之':'かとう たかゆき','北山 亘基':'きたやま こうき','達 孝太':'たつ こうた','伊藤 大海':'いとう ひろみ','山﨑 福也':'やまさき さちや','玉井 大翔':'たまい たいしょう','金村 尚真':'かねむら しょうま','宮西 尚生':'みやにし なおき',
+'Ａ．エスピノーザ':'えー えすぴのーざ','山下 舜平大':'やました しゅんぺいた','東 晃平':'あずま こうへい','寺西 成騎':'てらにし なるき','椋木 蓮':'むくのき れん','平野 佳寿':'ひらの よしひさ','曽谷 龍平':'そたに りゅうへい','宮城 大弥':'みやぎ ひろや','山岡 泰輔':'やまおか たいすけ','阿部 翔太':'あべ しょうた',
+'岸 孝之':'きし たかゆき','藤原 聡大':'ふじわら そうた','Ｒ．コントレラス':'あーる こんとれらす','古謝 樹':'こじゃ たつき','前田 健太':'まえだ けんた','荘司 康誠':'しょうじ やすまさ','伊藤 樹':'いとう たつき','早川 隆久':'はやかわ たかひさ','中込 陽翔':'なかごみ はると','酒居 知史':'さかい ともひと',
+'古市 尊':'ふるいち たける','上田 大河':'うえだ たいが','渡邉 勇太朗':'わたなべ ゆうたろう','與座 海人':'よざ かいと','隅田 知一郎':'すみだ ちひろ','松本 航':'まつもと わたる','佐藤 隼輔':'さとう しゅんすけ','岩城 颯空':'いわき はやく','武内 夏暉':'たけうち なつき','糸川 亮太':'いとかわ りょうた',
+'毛利 海大':'もうり かいと','小島 和哉':'おじま かずや','横山 陸人':'よこやま りくと','種市 篤暉':'たねいち あつき','石垣 元気':'いしがき げんき','唐川 侑己':'からかわ ゆうき','石川 柊太':'いしかわ しゅうた','東妻 勇輔':'あづま ゆうすけ','西野 勇士':'にしの ゆうじ','益田 直也':'ますだ なおや'
 };
+let P=[
+['阪神タイガース','投手','13','岩崎 優'],['阪神タイガース','投手','14','岩貞 祐太'],['阪神タイガース','投手','16','西 勇輝'],['阪神タイガース','投手','18','伊原 陵人'],['阪神タイガース','投手','19','下村 海翔'],['阪神タイガース','投手','21','大竹 耕太郎'],['阪神タイガース','投手','27','伊藤 将司'],['阪神タイガース','投手','35','才木 浩人'],['阪神タイガース','投手','41','村上 頌樹'],['阪神タイガース','投手','47','桐敷 拓馬'],
+['横浜DeNAベイスターズ','投手','11','東 克樹'],['横浜DeNAベイスターズ','投手','12','竹田 祐'],['横浜DeNAベイスターズ','投手','13','伊勢 大夢'],['横浜DeNAベイスターズ','投手','14','石田 健大'],['横浜DeNAベイスターズ','投手','15','島田 舜也'],['横浜DeNAベイスターズ','投手','16','大貫 晋一'],['横浜DeNAベイスターズ','投手','18','小園 健太'],['横浜DeNAベイスターズ','投手','19','山﨑 康晃'],['横浜DeNAベイスターズ','投手','20','坂本 裕哉'],['横浜DeNAベイスターズ','内野手','2','牧 秀悟'],
+['読売ジャイアンツ','投手','11','田中 将大'],['読売ジャイアンツ','投手','15','大勢'],['読売ジャイアンツ','投手','17','西舘 勇陽'],['読売ジャイアンツ','投手','19','山﨑 伊織'],['読売ジャイアンツ','投手','20','戸郷 翔征'],['読売ジャイアンツ','投手','30','田和 廉'],['読売ジャイアンツ','投手','31','赤星 優志'],['読売ジャイアンツ','投手','41','中川 皓太'],['読売ジャイアンツ','投手','43','則本 昂大'],['読売ジャイアンツ','投手','49','Ａ．バルドナード'],
+['中日ドラゴンズ','投手','11','中西 聖輝'],['中日ドラゴンズ','投手','14','草加 勝'],['中日ドラゴンズ','投手','17','柳 裕也'],['中日ドラゴンズ','投手','19','髙橋 宏斗'],['中日ドラゴンズ','投手','20','涌井 秀章'],['中日ドラゴンズ','投手','21','金丸 夢斗'],['中日ドラゴンズ','投手','22','大野 雄大'],['中日ドラゴンズ','投手','29','松木平 優太'],['中日ドラゴンズ','投手','30','根尾 昂'],['中日ドラゴンズ','投手','50','清水 達也'],
+['広島東洋カープ','投手','11','齊藤 汰直'],['広島東洋カープ','投手','13','森浦 大輔'],['広島東洋カープ','投手','14','大瀬良 大地'],['広島東洋カープ','投手','16','森 翔平'],['広島東洋カープ','投手','18','森下 暢仁'],['広島東洋カープ','投手','19','床田 寛樹'],['広島東洋カープ','投手','20','栗林 良吏'],['広島東洋カープ','投手','21','中﨑 翔太'],['広島東洋カープ','投手','24','黒原 拓未'],['広島東洋カープ','投手','26','益田 武尚'],
+['東京ヤクルトスワローズ','投手','12','石山 泰稚'],['東京ヤクルトスワローズ','投手','15','中村 優斗'],['東京ヤクルトスワローズ','投手','17','清水 昇'],['東京ヤクルトスワローズ','投手','18','奥川 恭伸'],['東京ヤクルトスワローズ','投手','19','石川 雅規'],['東京ヤクルトスワローズ','投手','20','木澤 尚文'],['東京ヤクルトスワローズ','投手','21','吉村 貢司郎'],['東京ヤクルトスワローズ','投手','28','松本 健吾'],['東京ヤクルトスワローズ','投手','29','小川 泰弘'],['東京ヤクルトスワローズ','投手','34','田口 麗斗'],
+['福岡ソフトバンクホークス','投手','2','Ｃ．スチュワート・ジュニア'],['福岡ソフトバンクホークス','投手','10','上沢 直之'],['福岡ソフトバンクホークス','投手','11','津森 宥紀'],['福岡ソフトバンクホークス','投手','13','稲川 竜汰'],['福岡ソフトバンクホークス','投手','16','東浜 巨'],['福岡ソフトバンクホークス','投手','18','徐 若熙'],['福岡ソフトバンクホークス','投手','19','大津 亮介'],['福岡ソフトバンクホークス','投手','20','村上 泰斗'],['福岡ソフトバンクホークス','投手','27','岩井 俊介'],['福岡ソフトバンクホークス','投手','28','安德 駿'],
+['北海道日本ハムファイターズ','投手','12','矢澤 宏太'],['北海道日本ハムファイターズ','投手','13','生田目 翼'],['北海道日本ハムファイターズ','投手','14','加藤 貴之'],['北海道日本ハムファイターズ','投手','15','北山 亘基'],['北海道日本ハムファイターズ','投手','16','達 孝太'],['北海道日本ハムファイターズ','投手','17','伊藤 大海'],['北海道日本ハムファイターズ','投手','18','山﨑 福也'],['北海道日本ハムファイターズ','投手','19','玉井 大翔'],['北海道日本ハムファイターズ','投手','24','金村 尚真'],['北海道日本ハムファイターズ','投手','25','宮西 尚生'],
+['オリックス・バファローズ','投手','00','Ａ．エスピノーザ'],['オリックス・バファローズ','投手','11','山下 舜平大'],['オリックス・バファローズ','投手','12','東 晃平'],['オリックス・バファローズ','投手','13','寺西 成騎'],['オリックス・バファローズ','投手','15','椋木 蓮'],['オリックス・バファローズ','投手','16','平野 佳寿'],['オリックス・バファローズ','投手','17','曽谷 龍平'],['オリックス・バファローズ','投手','18','宮城 大弥'],['オリックス・バファローズ','投手','19','山岡 泰輔'],['オリックス・バファローズ','投手','20','阿部 翔太'],
+['東北楽天ゴールデンイーグルス','投手','11','岸 孝之'],['東北楽天ゴールデンイーグルス','投手','13','藤原 聡大'],['東北楽天ゴールデンイーグルス','投手','15','Ｒ．コントレラス'],['東北楽天ゴールデンイーグルス','投手','17','古謝 樹'],['東北楽天ゴールデンイーグルス','投手','18','前田 健太'],['東北楽天ゴールデンイーグルス','投手','19','荘司 康誠'],['東北楽天ゴールデンイーグルス','投手','20','伊藤 樹'],['東北楽天ゴールデンイーグルス','投手','21','早川 隆久'],['東北楽天ゴールデンイーグルス','投手','26','中込 陽翔'],['東北楽天ゴールデンイーグルス','投手','28','酒居 知史'],
+['埼玉西武ライオンズ','捕手','65','古市 尊'],['埼玉西武ライオンズ','投手','11','上田 大河'],['埼玉西武ライオンズ','投手','12','渡邉 勇太朗'],['埼玉西武ライオンズ','投手','15','與座 海人'],['埼玉西武ライオンズ','投手','16','隅田 知一郎'],['埼玉西武ライオンズ','投手','17','松本 航'],['埼玉西武ライオンズ','投手','19','佐藤 隼輔'],['埼玉西武ライオンズ','投手','20','岩城 颯空'],['埼玉西武ライオンズ','投手','21','武内 夏暉'],['埼玉西武ライオンズ','投手','23','糸川 亮太'],
+['千葉ロッテマリーンズ','投手','13','毛利 海大'],['千葉ロッテマリーンズ','投手','14','小島 和哉'],['千葉ロッテマリーンズ','投手','15','横山 陸人'],['千葉ロッテマリーンズ','投手','16','種市 篤暉'],['千葉ロッテマリーンズ','投手','18','石垣 元気'],['千葉ロッテマリーンズ','投手','19','唐川 侑己'],['千葉ロッテマリーンズ','投手','21','石川 柊太'],['千葉ロッテマリーンズ','投手','24','東妻 勇輔'],['千葉ロッテマリーンズ','投手','29','西野 勇士'],['千葉ロッテマリーンズ','投手','52','益田 直也']
+].map((x,i)=>({
+ team:x[0],league:TEAMS[x[0]],pos:x[1],num:x[2],name:x[3],
+ career:x[0],id:i+1,year:2026
+}));
 
-const P=[
-['阪神タイガース','投手','13','岩崎 優'],
-['阪神タイガース','投手','14','岩貞 祐太'],
-['阪神タイガース','投手','16','西 勇輝'],
-['阪神タイガース','投手','18','伊原 陵人'],
-['阪神タイガース','投手','19','下村 海翔'],
-['阪神タイガース','投手','21','大竹 耕太郎'],
-['阪神タイガース','投手','27','伊藤 将司'],
-['阪神タイガース','投手','35','才木 浩人'],
-['阪神タイガース','投手','41','村上 頌樹'],
-['阪神タイガース','投手','47','桐敷 拓馬'],
-['横浜DeNAベイスターズ','投手','11','東 克樹'],
-['横浜DeNAベイスターズ','投手','12','竹田 祐'],
-['横浜DeNAベイスターズ','投手','13','伊勢 大夢'],
-['横浜DeNAベイスターズ','投手','14','石田 健大'],
-['横浜DeNAベイスターズ','投手','15','島田 舜也'],
-['横浜DeNAベイスターズ','投手','16','大貫 晋一'],
-['横浜DeNAベイスターズ','投手','18','小園 健太'],
-['横浜DeNAベイスターズ','投手','19','山﨑 康晃'],
-['横浜DeNAベイスターズ','投手','20','坂本 裕哉'],
-['横浜DeNAベイスターズ','内野手','2','牧 秀悟'],
-['読売ジャイアンツ','投手','11','田中 将大'],
-['読売ジャイアンツ','投手','15','大勢'],
-['読売ジャイアンツ','投手','17','西舘 勇陽'],
-['読売ジャイアンツ','投手','19','山﨑 伊織'],
-['読売ジャイアンツ','投手','20','戸郷 翔征'],
-['読売ジャイアンツ','投手','30','田和 廉'],
-['読売ジャイアンツ','投手','31','赤星 優志'],
-['読売ジャイアンツ','投手','41','中川 皓太'],
-['読売ジャイアンツ','投手','43','則本 昂大'],
-['読売ジャイアンツ','投手','49','Ａ．バルドナード'],
-['中日ドラゴンズ','投手','11','中西 聖輝'],
-['中日ドラゴンズ','投手','14','草加 勝'],
-['中日ドラゴンズ','投手','17','柳 裕也'],
-['中日ドラゴンズ','投手','19','髙橋 宏斗'],
-['中日ドラゴンズ','投手','20','涌井 秀章'],
-['中日ドラゴンズ','投手','21','金丸 夢斗'],
-['中日ドラゴンズ','投手','22','大野 雄大'],
-['中日ドラゴンズ','投手','29','松木平 優太'],
-['中日ドラゴンズ','投手','30','根尾 昂'],
-['中日ドラゴンズ','投手','50','清水 達也'],
-['広島東洋カープ','投手','11','齊藤 汰直'],
-['広島東洋カープ','投手','13','森浦 大輔'],
-['広島東洋カープ','投手','14','大瀬良 大地'],
-['広島東洋カープ','投手','16','森 翔平'],
-['広島東洋カープ','投手','18','森下 暢仁'],
-['広島東洋カープ','投手','19','床田 寛樹'],
-['広島東洋カープ','投手','20','栗林 良吏'],
-['広島東洋カープ','投手','21','中﨑 翔太'],
-['広島東洋カープ','投手','24','黒原 拓未'],
-['広島東洋カープ','投手','26','益田 武尚'],
-['東京ヤクルトスワローズ','投手','12','石山 泰稚'],
-['東京ヤクルトスワローズ','投手','15','中村 優斗'],
-['東京ヤクルトスワローズ','投手','17','清水 昇'],
-['東京ヤクルトスワローズ','投手','18','奥川 恭伸'],
-['東京ヤクルトスワローズ','投手','19','石川 雅規'],
-['東京ヤクルトスワローズ','投手','20','木澤 尚文'],
-['東京ヤクルトスワローズ','投手','21','吉村 貢司郎'],
-['東京ヤクルトスワローズ','投手','28','松本 健吾'],
-['東京ヤクルトスワローズ','投手','29','小川 泰弘'],
-['東京ヤクルトスワローズ','投手','34','田口 麗斗'],
-['福岡ソフトバンクホークス','投手','2','Ｃ．スチュワート・ジュニア'],
-['福岡ソフトバンクホークス','投手','10','上沢 直之'],
-['福岡ソフトバンクホークス','投手','11','津森 宥紀'],
-['福岡ソフトバンクホークス','投手','13','稲川 竜汰'],
-['福岡ソフトバンクホークス','投手','16','東浜 巨'],
-['福岡ソフトバンクホークス','投手','18','徐 若熙'],
-['福岡ソフトバンクホークス','投手','19','大津 亮介'],
-['福岡ソフトバンクホークス','投手','20','村上 泰斗'],
-['福岡ソフトバンクホークス','投手','27','岩井 俊介'],
-['福岡ソフトバンクホークス','投手','28','安德 駿'],
-['北海道日本ハムファイターズ','投手','12','矢澤 宏太'],
-['北海道日本ハムファイターズ','投手','13','生田目 翼'],
-['北海道日本ハムファイターズ','投手','14','加藤 貴之'],
-['北海道日本ハムファイターズ','投手','15','北山 亘基'],
-['北海道日本ハムファイターズ','投手','16','達 孝太'],
-['北海道日本ハムファイターズ','投手','17','伊藤 大海'],
-['北海道日本ハムファイターズ','投手','18','山﨑 福也'],
-['北海道日本ハムファイターズ','投手','19','玉井 大翔'],
-['北海道日本ハムファイターズ','投手','24','金村 尚真'],
-['北海道日本ハムファイターズ','投手','25','宮西 尚生'],
-['オリックス・バファローズ','投手','00','Ａ．エスピノーザ'],
-['オリックス・バファローズ','投手','11','山下 舜平大'],
-['オリックス・バファローズ','投手','12','東 晃平'],
-['オリックス・バファローズ','投手','13','寺西 成騎'],
-['オリックス・バファローズ','投手','15','椋木 蓮'],
-['オリックス・バファローズ','投手','16','平野 佳寿'],
-['オリックス・バファローズ','投手','17','曽谷 龍平'],
-['オリックス・バファローズ','投手','18','宮城 大弥'],
-['オリックス・バファローズ','投手','19','山岡 泰輔'],
-['オリックス・バファローズ','投手','20','阿部 翔太'],
-['東北楽天ゴールデンイーグルス','投手','11','岸 孝之'],
-['東北楽天ゴールデンイーグルス','投手','13','藤原 聡大'],
-['東北楽天ゴールデンイーグルス','投手','15','Ｒ．コントレラス'],
-['東北楽天ゴールデンイーグルス','投手','17','古謝 樹'],
-['東北楽天ゴールデンイーグルス','投手','18','前田 健太'],
-['東北楽天ゴールデンイーグルス','投手','19','荘司 康誠'],
-['東北楽天ゴールデンイーグルス','投手','20','伊藤 樹'],
-['東北楽天ゴールデンイーグルス','投手','21','早川 隆久'],
-['東北楽天ゴールデンイーグルス','投手','26','中込 陽翔'],
-['東北楽天ゴールデンイーグルス','投手','28','酒居 知史'],
-['埼玉西武ライオンズ','捕手','65','古市 尊'],
-['埼玉西武ライオンズ','投手','11','上田 大河'],
-['埼玉西武ライオンズ','投手','12','渡邉 勇太朗'],
-['埼玉西武ライオンズ','投手','15','與座 海人'],
-['埼玉西武ライオンズ','投手','16','隅田 知一郎'],
-['埼玉西武ライオンズ','投手','17','松本 航'],
-['埼玉西武ライオンズ','投手','19','佐藤 隼輔'],
-['埼玉西武ライオンズ','投手','20','岩城 颯空'],
-['埼玉西武ライオンズ','投手','21','武内 夏暉'],
-['埼玉西武ライオンズ','投手','23','糸川 亮太'],
-['千葉ロッテマリーンズ','投手','13','毛利 海大'],
-['千葉ロッテマリーンズ','投手','14','小島 和哉'],
-['千葉ロッテマリーンズ','投手','15','横山 陸人'],
-['千葉ロッテマリーンズ','投手','16','種市 篤暉'],
-['千葉ロッテマリーンズ','投手','18','石垣 元気'],
-['千葉ロッテマリーンズ','投手','19','唐川 侑己'],
-['千葉ロッテマリーンズ','投手','21','石川 柊太'],
-['千葉ロッテマリーンズ','投手','24','東妻 勇輔'],
-['千葉ロッテマリーンズ','投手','29','西野 勇士'],
-['千葉ロッテマリーンズ','投手','52','益田 直也']
-].map((x,i)=>({team:x[0],league:TEAMS[x[0]],pos:x[1],num:x[2],name:x[3],id:i+1,year:2026}));
-
-let mode='all',current=null,hints=0,score=0,q=0,correct=0,answered=false,pool=[];
-const $=id=>document.getElementById(id);
-const show=id=>document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
-const norm=s=>String(s).replace(/[\s　・･.。,，]/g,'').replace(/髙/g,'高').replace(/﨑/g,'崎').replace(/神/g,'神').replace(/海/g,'海').toLowerCase();
-
-function refreshTeams(){
-let sel=$('team');
-sel.innerHTML='<option value="all">12球団すべて</option>';
-Object.keys(TEAMS).forEach(t=>{
-let o=document.createElement('option');
-o.value=t;o.textContent=t;sel.appendChild(o);
-});
+/* ===== 2026公式データ自動読み込み =====
+   NPB公式の「2026年度シーズン終了時」12球団選手一覧を取得し、
+   育成選手を除いた支配下選手をゲームプールへ読み込みます。
+   GitHub PagesのブラウザからNPBへ直接アクセスできない場合に備え、
+   r.jina.ai の読み取りプロキシを利用します。取得できない場合は内蔵データで動作します。
+*/
+const OFFICIAL_TEAM_URLS={
+  '阪神タイガース':'https://npb.jp/bis/teams/rst_t.html',
+  '横浜DeNAベイスターズ':'https://npb.jp/bis/teams/rst_db.html',
+  '読売ジャイアンツ':'https://npb.jp/bis/teams/rst_g.html',
+  '中日ドラゴンズ':'https://npb.jp/bis/teams/rst_d.html',
+  '広島東洋カープ':'https://npb.jp/bis/teams/rst_c.html',
+  '東京ヤクルトスワローズ':'https://npb.jp/bis/teams/rst_s.html',
+  '福岡ソフトバンクホークス':'https://npb.jp/bis/teams/rst_h.html',
+  '北海道日本ハムファイターズ':'https://npb.jp/bis/teams/rst_f.html',
+  'オリックス・バファローズ':'https://npb.jp/bis/teams/rst_b.html',
+  '東北楽天ゴールデンイーグルス':'https://npb.jp/bis/teams/rst_e.html',
+  '埼玉西武ライオンズ':'https://npb.jp/bis/teams/rst_l.html',
+  '千葉ロッテマリーンズ':'https://npb.jp/bis/teams/rst_m.html'
+};
+let officialLoaded=false;
+const PROXY='https://r.jina.ai/';
+async function fetchOfficial(url){const r=await fetch(PROXY+url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}
+function cleanName(s){return String(s||'').replace(/【.*?】/g,'').replace(/\[[^\]]*\]\([^)]*\)/g,'').replace(/\s+/g,' ').trim();}
+function parseOfficialRoster(md,team){
+  const out=[];let pos='';
+  const lines=md.split(/\r?\n/);
+  for(const raw of lines){
+    const line=raw.trim();
+    if(/^#+\s*(投手|捕手|内野手|外野手)\s*$/.test(line)) {pos=line.replace(/^#+\s*/,'');continue;}
+    if(line.includes('育成選手')) continue;
+    const m=line.match(/\[([^\]]+)\]\((https?:\/\/npb\.jp\/bis\/players\/[^)]+)\)/);
+    if(!m) continue;
+    const name=cleanName(m[1]);
+    if(!name || name==='選手一覧') continue;
+    const cols=line.split('|').map(x=>x.trim()).filter(Boolean);
+    if(cols.length<2) continue;
+    const num=cols[0].replace(/[^0-9A-Za-z]+/g,'')||cols[1].match(/^\d+$/)?.[0]||'';
+    const rest=cols.slice(1).join('|');
+    const profileLink=m[2];
+    const born=(rest.match(/(\d{4}\.\d{2}\.\d{2})/)||[])[1]||'';
+    const hw=(rest.match(/(\d{3})\s*\|\s*(\d{2,3})/)||[]);
+    const height=hw[1]||'';const weight=hw[2]||'';
+    const hands=(rest.match(/(右|左)\s*\|\s*(右|左|左右)/)||[]);
+    if(!out.some(x=>x.name===name)) out.push({team,league:TEAMS[team],pos:pos||'',num,birth:born,height,weight,throw: hands[1]||'',bat:hands[2]||'',name,profileLink,id:out.length+1,year:2026,career:team,reading:''});
+  }
+  return out;
+}
+async function loadOfficialData(){
+  if(officialLoaded)return;
+  const results=[];
+  await Promise.all(Object.entries(OFFICIAL_TEAM_URLS).map(async([team,url])=>{
+    try{const md=await fetchOfficial(url);results.push(...parseOfficialRoster(md,team));}catch(e){console.warn('公式データ取得失敗',team,e);}
+  }));
+  if(results.length>=700){
+    results.sort((a,b)=>Object.keys(TEAMS).indexOf(a.team)-Object.keys(TEAMS).indexOf(b.team));
+    P=results;rebuildSurnameCounts();officialLoaded=true;
+    P.forEach(p=>{if(NAME_READINGS[p.name])p.reading=NAME_READINGS[p.name];});
+    $('dataStatus').textContent=`NPB公式データ読み込み済み：${P.length}人（支配下）`;
+  }else{
+    $('dataStatus').textContent=`公式データを読み込めなかったため内蔵データ（${P.length}人）で開始します。`;
+  }
+}
+async function ensureProfile(p){
+  if(p.profileLoaded)return p;
+  if(!p.profileLink)return p;
+  try{
+    const md=await fetchOfficial(p.profileLink);
+    p.profileText=md;p.profileLoaded=true;
+    const reading=(md.match(new RegExp(p.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s+([^\n|]+)'))||[])[1]||'';
+    const rm=md.match(/(?:\n|\|)\s*([ぁ-んァ-ヶー・]+)\s*(?:\n|\|)/);
+    p.reading=reading.replace(/[・]/g,' ').trim()||rm?.[1]||p.reading;
+    const pm=md.match(/ポジション\s*\|\s*([^\n]+)/);if(pm)p.pos=pm[1].trim();
+    const hm=md.match(/身長\s*\/\s*体重\s*\|\s*([^\n]+)/);if(hm){const a=hm[1].match(/(\d+)cm\s*\/\s*(\d+)kg/);if(a){p.height=a[1];p.weight=a[2];}}
+    const bm=md.match(/生年月日\s*\|\s*([^\n]+)/);if(bm)p.birth=bm[1].trim();
+    const em=md.match(/投打\s*\|\s*([^\n]+)/);if(em){const a=em[1].match(/(右|左)投(右|左)打/);if(a){p.throw=a[1];p.bat=a[2];}}
+    const cm=md.match(/経歴\s*\|\s*([^\n]+)/);if(cm)p.careerAfterUniversity=cm[1].trim();
+    const dm=md.match(/ドラフト\s*\|\s*([^\n]+)/);if(dm)p.draft=dm[1].trim();
+    const title=md.match(/タイトル\s*\|\s*([^\n]+)/);if(title)p.title=title[1].trim();
+    const lines=md.split(/\r?\n/);
+    const idx=lines.findIndex(x=>/\|\s*2026\s*\|/.test(x));
+    if(idx>=0){
+      const row=lines[idx].split('|').map(x=>x.trim()).filter(Boolean);
+      const header=idx>0?lines[idx-1].split('|').map(x=>x.trim()).filter(Boolean):[];
+      const val={};header.forEach((h,i)=>{val[h]=row[i]||'';});
+      Object.assign(p,val);
+    }
+  }catch(e){console.warn('選手プロフィール取得失敗',p.name,e);}
+  return p;
+}
+function profileCard(p){
+  const items=[
+    ['所属球団',p.team],['守備位置',p.pos],['背番号',p.num],['投打',(p.throw&&p.bat)?`${p.throw}投${p.bat}打`:''||'未登録'],
+    ['身長',(p.height?`${p.height}cm`:'未登録')],['体重',(p.weight?`${p.weight}kg`:'未登録')],['生年月日',p.birth||'未登録'],
+    ['経歴',p.careerAfterUniversity||'未登録'],['ドラフト',p.draft||'未登録'],['球歴',p.career||p.team]
+  ];
+  return `<div class="result ok" style="text-align:left"><div style="font-size:20px;font-weight:900;margin-bottom:8px">⚾ ${p.name}</div>${items.map(x=>`<div style="padding:3px 0"><b>${x[0]}：</b>${x[1]}</div>`).join('')}</div>`;
 }
 
-document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
-document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('sel'));
-b.classList.add('sel');mode=b.dataset.mode;
-});
+let mode='all', current=null, hints=0, score=0, q=0, correct=0, answered=false, pool=[], asked=new Set();
+const $=id=>document.getElementById(id); const show=id=>document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
+const norm=s=>String(s).normalize('NFKC').replace(/[\s　・･.。,，]/g,'').replace(/髙/g,'高').replace(/﨑/g,'崎').replace(/神/g,'神').replace(/海/g,'海').toLowerCase();
+const hira=s=>String(s).normalize('NFKC').replace(/[ァ-ヶ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0x60));
+const surnameOf=s=>String(s).trim().split(/[\s　]+/)[0];
+const kanaName=s=>hira(NAME_READINGS[s]||'');
+const surnameKana=s=>hira(kanaName(s)).split(/[\s　]+/)[0];
+const normalizedSurname=s=>norm(surnameOf(s));
 
-function makePool(){
-let t=$('team').value;
-pool=P.filter(p=>(mode==='all'||p.league===mode)&&(t==='all'||p.team===t));
-pool.sort(()=>Math.random()-.5);
-}
-
-function start(){
-makePool();
-if(!pool.length){alert('該当する選手がいません');return}
-score=0;q=0;correct=0;show('game');nextQuestion();
-}
-
-function nextQuestion(){
-if(q>=20||!pool.length){finish();return}
-current=pool.pop();q++;hints=0;answered=false;
-$('qno').textContent=q;
-$('score').textContent=score;
-$('rate').textContent=Math.round(correct/Math.max(1,q-1)*100)+'%';
-$('bar').style.width=((q-1)/20*100)+'%';
-$('teamName').textContent=current.team;
-$('num').textContent='背番号 '+current.num;
-$('result').innerHTML='';
-$('nextBtn').disabled=true;
-$('answer').value='';
-$('answer').disabled=false;
-$('answerBtn').disabled=false;
-renderHints();
-}
-
-function renderHints(){
-let arr=[
-['超難問','2026年度のNPB支配下選手'],
-['ヒント2','守備位置：'+current.pos],
-['ヒント3','球団：'+current.team],
-['ヒント4','背番号：'+current.num],
-['ヒント5','選手名は '+current.name.replace(/\s/g,'').length+' 文字'],
-['最終ヒント','このカードの答えは「'+current.name+'」']
+function refreshTeams(){let sel=$('team');sel.innerHTML='<option value="all">12球団すべて</option>';Object.keys(TEAMS).forEach(t=>{let o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');mode=b.dataset.mode;});
+function makePool(){let t=$('team').value;pool=P.filter(p=>(mode==='all'||p.league===mode)&&(t==='all'||p.team===t));pool.sort(()=>Math.random()-.5);}
+async function start(){await loadOfficialData();makePool();if(!pool.length){alert('該当する選手がいません');return}score=0;q=0;correct=0;show('game');nextQuestion();}
+function nextQuestion(){if(q>=20||!pool.length){finish();return}current=pool.pop();q++;hints=0;asked=new Set();answered=false;$('qno').textContent=q;$('score').textContent=score;$('rate').textContent=Math.round(correct/Math.max(1,q-1)*100)+'%';$('bar').style.width=((q-1)/20*100)+'%';$('result').innerHTML='';$('hints').innerHTML='';openedDifficulty={hard:false,normal:false,easy:false};$('nextBtn').disabled=true;$('answer').value='';$('answer').disabled=false;$('answerBtn').disabled=false;$('giveUpBtn').disabled=false;renderHints();renderQuestionButtons();}
+const HARD_DEFS=[
+ ['pos','守備位置は？'],['birthplace','出身地は？'],['draft','ドラフト順位は？'],
+ ['height','身長は？'],['weight','体重は？'],['birthday','生年月日は？'],['hand','投打は？']
 ];
-$('hints').innerHTML=arr.slice(0,hints+1).map(x=>`<div class="hint"><small>${x[0]}</small>${x[1]}</div>`).join('');
+const NORMAL_COMMON=[
+ ['title','獲得タイトルは？'],['highSchool','出身高校は？'],['university','大学は？'],
+ ['careerAfterUniversity','大学卒業後の経歴は？'],['career','球歴は？'],['league','所属リーグは？']
+];
+const BATTER_DEFS=[
+ ['games','2026年の試合数は？'],['plateAppearances','2026年の打席数は？'],
+ ['hits','2026年の安打数は？'],['batting','2026年の打率は？'],
+ ['homeRuns','2026年の本塁打数は？'],['RBI','2026年の打点は？'],['steals','2026年の盗塁数は？']
+];
+const PITCHER_DEFS=[
+ ['appearances','2026年の登板数は？'],['innings','2026年の投球回は？'],
+ ['wins','2026年の勝利数は？'],['losses','2026年の敗戦数は？'],
+ ['saves','2026年のセーブ数は？'],['holdsPlus','2026年のHP数は？'],
+ ['ERA','2026年の防御率は？'],['strikeouts','2026年の奪三振数は？']
+];
+const EASY_DEFS=[
+ ['team','所属球団は？'],['num','背番号は？'],['firstCharacter','名前の最初の文字は？']
+];
+const CAREER_MAP={
+  '甲斐 拓也':'ソフトバンク → 巨人',
+  '東浜 巨':'ソフトバンク',
+  '尾形 崇斗':'ソフトバンク → DeNA',
+  '井上 朋也':'ソフトバンク → DeNA',
+  '杉浦 稔大':'日本ハム → 中日',
+  '若林 楽人':'巨人 → 西武'
+};
+P.forEach(p=>{if(CAREER_MAP[p.name])p.career=CAREER_MAP[p.name];p.reading=NAME_READINGS[p.name]||'';});
+let surnameCounts={};
+function rebuildSurnameCounts(){surnameCounts={};P.forEach(p=>{const k=normalizedSurname(p.name);surnameCounts[k]=(surnameCounts[k]||0)+1;});}
+rebuildSurnameCounts();
+const allDefs=()=>[...HARD_DEFS,...NORMAL_COMMON,...(current&&current.pos==='投手'?PITCHER_DEFS:BATTER_DEFS),...EASY_DEFS];
+let openedDifficulty={hard:false,normal:false,easy:false};
+function renderQuestionButtons(){
+ const groups=[
+  ['hard','質問（ハード）',HARD_DEFS],
+  ['normal','質問（ノーマル）',[...(current&&current.pos==='投手'?PITCHER_DEFS:BATTER_DEFS),...NORMAL_COMMON]],
+  ['easy','質問（イージー）',EASY_DEFS]
+ ];
+ $('questionButtons').innerHTML=groups.map(([id,label,defs])=>`
+  <div class="difficulty">
+   <button type="button" class="difficulty-toggle" data-difficulty="${id}">
+    <span>${label}</span><span>${openedDifficulty[id]?'▲':'▼'}</span>
+   </button>
+   ${openedDifficulty[id]?`<div class="difficulty-body"><div class="qgrid">${defs.map(([k,text])=>`<button type="button" data-q="${k}" ${asked.has(k)||answered?'disabled':''}>${text}</button>`).join('')}</div></div>`:''}
+  </div>`).join('');
+ document.querySelectorAll('[data-difficulty]').forEach(b=>b.onclick=()=>{
+  const id=b.dataset.difficulty;openedDifficulty[id]=!openedDifficulty[id];renderQuestionButtons();
+ });
+ document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>askQuestion(b.dataset.q));
 }
+async function answerFor(k){await ensureProfile(current);
+ const profileStats={
+  games:current['試合']||current.games,plateAppearances:current['打席']||current.plateAppearances,hits:current['安打']||current.hits,batting:current['打率']||current.batting,homeRuns:current['本塁打']||current.homeRuns,RBI:current['打点']||current.RBI,steals:current['盗塁']||current.steals,
+  appearances:current['登板']||current.appearances,innings:current['投球回']||current.innings,wins:current['勝利']||current.wins,losses:current['敗北']||current.losses,saves:current['セーブ']||current.saves,holdsPlus:current['HP']||current.holdsPlus,ERA:current['防御率']||current.ERA,strikeouts:current['三振']||current.strikeouts
+ };
+ if(k in profileStats)return profileStats[k]!==undefined&&profileStats[k]!==''?String(profileStats[k]):'2026年一軍公式戦出場なし';
 
-function hint(){
-if(answered)return;
-if(hints<5){hints++;renderHints();}
+ const known={
+  league:current.league==='central'?'セ・リーグ':'パ・リーグ',
+  team:current.team,
+  career:current.career || current.team,
+  pos:current.pos,
+  num:'背番号は'+current.num+'です。',
+  firstCharacter:'名前の最初の文字は「'+current.name.replace(/\\s/g,'')[0]+'」です。'
+ };
+ if(k in known)return known[k];
+ const labels=Object.fromEntries([...HARD_DEFS,...NORMAL_COMMON,...BATTER_DEFS,...PITCHER_DEFS].map(x=>[x[0],x[1]]));
+ return 'この選手の「'+(labels[k]||k)+'」は、現在のデータに登録されていません。';
 }
-
-function answer(){
-if(answered)return;
-let a=$('answer').value.trim();
-if(!a){
-$('result').innerHTML='<div class="result ng">選手名を入力してください。</div>';
-return;
+async function askQuestion(k){
+ if(answered||asked.has(k))return;
+ asked.add(k);hints++;
+ const defs=[...HARD_DEFS,...NORMAL_COMMON,...BATTER_DEFS,...PITCHER_DEFS,...EASY_DEFS];
+ const label=defs.find(x=>x[0]===k)?.[1]||k;
+ const ans=await answerFor(k);
+ $('hints').insertAdjacentHTML('beforeend',`<div class="qaLog"><b>質問：${label}</b><br>${ans}</div>`);
+ renderQuestionButtons();
 }
-answered=true;
-let ok=norm(a)===norm(current.name);
-if(ok){
-let pts=Math.max(10,100-hints*15);
-score+=pts;correct++;
-$('result').innerHTML=`<div class="result ok">正解！ <b>${current.name}</b><br>+${pts}点</div>`;
-}else{
-$('result').innerHTML=`<div class="result ng">不正解。正解は <b>${current.name}</b></div>`;
+function renderHints(){} function hint(){askQuestion('team');}
+async function answer(){
+ if(answered)return;await ensureProfile(current);
+ let a=$('answer').value.trim();
+ if(!a){$('result').innerHTML='<div class="result ng">選手名を入力してください。</div>';return;}
+ const full=norm(current.name), input=norm(a), fullKana=norm(hira(kanaName(current.name))), inputKana=norm(hira(a));
+ let ok=false, ambiguous=false;
+ if(input===full || (fullKana && inputKana===fullKana)) ok=true;
+ else if(input===normalizedSurname(current.name) || inputKana===surnameKana(current.name)) {
+   const cnt=surnameCounts[normalizedSurname(current.name)]||0;
+   if(cnt===1) ok=true; else ambiguous=true;
+ }
+ if(ambiguous){
+   $('result').innerHTML='<div class="result ng">「'+surnameOf(current.name)+'」だけでは特定できません。<b>フルネームで答えてください。</b></div>';
+   $('answer').focus();return;
+ }
+ answered=true;
+ if(ok){let pts=Math.max(10,100-hints*15);score+=pts;correct++;$('result').innerHTML=`<div class="result ok">正解！ <b>${current.name}</b><br>+${pts}点</div>`;setTimeout(()=>{$('result').insertAdjacentHTML('beforeend',profileCard(current));},0);}
+ else{$('result').innerHTML=`<div class="result ng">不正解。正解は <b>${current.name}</b></div>`;setTimeout(()=>{$('result').insertAdjacentHTML('beforeend',profileCard(current));},0);}
+ $('score').textContent=score;$('rate').textContent=Math.round(correct/q*100)+'%';$('answer').disabled=true;$('answerBtn').disabled=true;$('giveUpBtn').disabled=true;$('nextBtn').disabled=false;
 }
-$('score').textContent=score;
-$('rate').textContent=Math.round(correct/q*100)+'%';
-$('answer').disabled=true;
-$('answerBtn').disabled=true;
-$('nextBtn').disabled=false;
+async function giveUp(){
+ if(answered)return;await ensureProfile(current);
+ answered=true;
+ $('result').innerHTML=`<div class="result ng">GIVE UP！正解は <b>${current.name}</b> でした。</div>`+profileCard(current);
+ $('answer').disabled=true;$('answerBtn').disabled=true;$('giveUpBtn').disabled=true;
+ $('nextBtn').disabled=false;renderQuestionButtons();
 }
-
-function finish(){
-show('finish');
-$('finalScore').textContent=score;
-$('finalText').textContent=`20問中 ${correct}問正解（正解率 ${Math.round(correct/Math.max(1,q)*100)}%）`;
-$('bar').style.width='100%';
-}
-
-$('startBtn').onclick=start;
-$('hintBtn').onclick=hint;
-$('answerBtn').onclick=answer;
-$('nextBtn').onclick=nextQuestion;
-$('backBtn').onclick=()=>show('start');
-$('againBtn').onclick=()=>show('start');
-$('answer').addEventListener('keydown',e=>{if(e.key==='Enter')answer()});
-refreshTeams();
-</script>
-</body>
-</html>
+function finish(){show('finish');$('finalScore').textContent=score;$('finalText').textContent=`20問中 ${correct}問正解（正解率 ${Math.round(correct/Math.max(1,q)*100)}%）`;$('bar').style.width='100%';}
+$('startBtn').onclick=start;$('answerBtn').onclick=answer;$('giveUpBtn').onclick=giveUp;$('nextBtn').onclick=nextQuestion;$('backBtn').onclick=()=>show('start');$('againBtn').onclick=()=>show('start');$('answer').addEventListener('keydown',e=>{if(e.key==='Enter')answer()});refreshTeams();
+</script></body></html>
