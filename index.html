@@ -93,7 +93,7 @@ const BIO_TEAM_ALIASES={
 let officialLoaded=false;
 const PROXY='https://r.jina.ai/';
 async function fetchOfficial(url){
-  const cacheKey='npb2026:v2:'+url;
+  const cacheKey='npb2026:v3:'+url;
   try{
     const cached=sessionStorage.getItem(cacheKey);
     if(cached && cached.length>200) return cached;
@@ -145,7 +145,7 @@ function parseOfficialRoster(md,team){
     }
     // Markdown inline link / reference link / HTML anchor のいずれにも対応
     let name='',href='';
-    let lm=line.match(/\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]+)\)/);
+    let lm=line.match(/\[([^\]]+)\]\(([^)\s]+)(?:\s+[^)]*)?\)/);
     if(lm){name=lm[1];href=lm[2];}
     if(!href){
       lm=line.match(/\[([^\]]+)\]\[([^\]]*)\]/);
@@ -155,11 +155,15 @@ function parseOfficialRoster(md,team){
       lm=line.match(/<a\s+[^>]*href=["']([^"']*\/bis\/players\/[^"']*)["'][^>]*>(.*?)<\/a>/i);
       if(lm){href=lm[1];name=lm[2].replace(/<[^>]*>/g,'');}
     }
-    if(!href || !/npb\.jp\/bis\/players\//i.test(href))continue;
+    // NPBの球団ページは、Jina Reader経由で絶対URLと相対URLが混在する。
+    // 以前は npb.jp を含む絶対URLだけ許可していたため、相対リンクの球団が丸ごと0名になっていた。
+    if(!href || !/(?:^|\/)bis\/players\//i.test(href) && !/npb\.jp\/bis\/players\//i.test(href))continue;
+    let profileLink='';
+    try{profileLink=new URL(href,'https://npb.jp/').href;}catch(e){continue;}
+    if(!/^https?:\/\/(?:www\.)?npb\.jp\/bis\/players\//i.test(profileLink))continue;
     name=cleanName(name).replace(/^\d+\s*[†|｜]\s*/,'').replace(/　/g,' ').replace(/\s+/g,' ').trim();
     if(!name || name==='選手一覧')continue;
     const cols=tableCells(line);
-    const linkText=`[${name}]`;
     let linkCol=cols.findIndex(x=>x.includes(name));
     if(linkCol<0)linkCol=1;
     const num=(cols[0]||'').replace(/[^0-9A-Za-z]/g,'');
@@ -168,8 +172,6 @@ function parseOfficialRoster(md,team){
     const weight=cols[linkCol+3]||'';
     const throwing=cols[linkCol+4]||'';
     const batting=cols[linkCol+5]||'';
-    let profileLink=href;
-    if(profileLink.startsWith('/'))profileLink='https://npb.jp'+profileLink;
     profileLink=profileLink.replace(/[?#].*$/,'');
     if(!out.some(x=>x.profileLink===profileLink))out.push({
       team,league:TEAMS[team],pos:pos||'',num,birth,height,weight,
