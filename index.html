@@ -93,7 +93,7 @@ const BIO_TEAM_ALIASES={
 let officialLoaded=false;
 const PROXY='https://r.jina.ai/';
 async function fetchOfficial(url){
-  const cacheKey='npb2026:'+url;
+  const cacheKey='npb2026:v2:'+url;
   try{
     const cached=sessionStorage.getItem(cacheKey);
     if(cached && cached.length>200) return cached;
@@ -108,8 +108,13 @@ async function fetchOfficial(url){
       if(!r.ok) throw new Error('HTTP '+r.status);
       const t=await r.text();
       if(t && t.length>200){
-        try{sessionStorage.setItem(cacheKey,t);}catch(e){}
-        return t;
+        // 途中で切れた応答をキャッシュしない。球団ページは末尾の著作権表記まで取得できたものを優先。
+        const looksLikeRoster=/選手一覧/.test(t) && /bis\/players\//.test(t);
+        if(looksLikeRoster && (t.includes('Copyright') || t.includes('All Rights Reserved') || t.length>12000)){
+          try{sessionStorage.setItem(cacheKey,t);}catch(e){}
+          return t;
+        }
+        if(!looksLikeRoster && t.length>200){try{sessionStorage.setItem(cacheKey,t);}catch(e){} return t;}
       }
     }catch(e){lastErr=String(e);}
     await new Promise(r=>setTimeout(r,700));
@@ -119,11 +124,16 @@ async function fetchOfficial(url){
 function cleanName(s){return String(s||'').replace(/【.*?】/g,'').replace(/\[[^\]]*\]\([^)]*\)/g,'').replace(/\s+/g,' ').trim();}
 function parseOfficialRoster(md,team){
   const out=[];let pos='';let inDevelopment=false;
-  const lines=md.split(/\r?\n/);
+  const lines=String(md||'').split(/\r?\n/);
+  // Jina Readerの出力形式は、通常のMarkdownリンク・参照リンク・HTMLリンクで
+  // 表記が揺れることがあるため、リンク定義も先に集めておく。
+  const refLinks={};
+  for(const raw of lines){
+    const m=raw.match(/^\s*\[([^\]]+)\]:\s*<?(https?:\/\/[^ >]+)>?/i);
+    if(m)refLinks[m[1]]=m[2].replace(/[)>]+$/,'');
+  }
   for(const raw of lines){
     const line=raw.trim();
-    // 備考欄の「育成選手から支配下選手へ移行」を見出しと誤認しない。
-    // NPB公式ページのセクション見出しだけで切り替える。
     if(/^#{1,6}\s*■\s*育成選手\s*$/.test(line) || /^育成選手一覧\s*$/.test(line)){inDevelopment=true;continue;}
     if(/^#{1,6}\s*■\s*支配下選手\s*$/.test(line) || /^支配下選手一覧\s*$/.test(line)){inDevelopment=false;continue;}
     if(inDevelopment)continue;
@@ -133,19 +143,34 @@ function parseOfficialRoster(md,team){
       if(pcol)pos=pcol;
       continue;
     }
-    const m=line.match(/\[([^\]]+)\]\(((?:https?:\/\/)?(?:www\.)?npb\.jp\/bis\/players\/[^)]+)\)/);
-    if(!m)continue;
-    const name=cleanName(m[1]).replace(/　/g,' ').replace(/\s+/g,' ').trim();
+    // Markdown inline link / reference link / HTML anchor のいずれにも対応
+    let name='',href='';
+    let lm=line.match(/\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]+)\)/);
+    if(lm){name=lm[1];href=lm[2];}
+    if(!href){
+      lm=line.match(/\[([^\]]+)\]\[([^\]]*)\]/);
+      if(lm){name=lm[1];href=refLinks[lm[2]||lm[1]]||'';}
+    }
+    if(!href){
+      lm=line.match(/<a\s+[^>]*href=["']([^"']*\/bis\/players\/[^"']*)["'][^>]*>(.*?)<\/a>/i);
+      if(lm){href=lm[1];name=lm[2].replace(/<[^>]*>/g,'');}
+    }
+    if(!href || !/npb\.jp\/bis\/players\//i.test(href))continue;
+    name=cleanName(name).replace(/^\d+\s*[†|｜]\s*/,'').replace(/　/g,' ').replace(/\s+/g,' ').trim();
     if(!name || name==='選手一覧')continue;
     const cols=tableCells(line);
-    const linkCol=cols.findIndex(x=>x.includes(m[0]));
+    const linkText=`[${name}]`;
+    let linkCol=cols.findIndex(x=>x.includes(name));
+    if(linkCol<0)linkCol=1;
     const num=(cols[0]||'').replace(/[^0-9A-Za-z]/g,'');
     const birth=cols[linkCol+1]||'';
     const height=cols[linkCol+2]||'';
     const weight=cols[linkCol+3]||'';
     const throwing=cols[linkCol+4]||'';
     const batting=cols[linkCol+5]||'';
-    const profileLink=/^https?:\/\//.test(m[2])?m[2]:'https://npb.jp'+(m[2].startsWith('/')?m[2]:'/'+m[2]);
+    let profileLink=href;
+    if(profileLink.startsWith('/'))profileLink='https://npb.jp'+profileLink;
+    profileLink=profileLink.replace(/[?#].*$/,'');
     if(!out.some(x=>x.profileLink===profileLink))out.push({
       team,league:TEAMS[team],pos:pos||'',num,birth,height,weight,
       throw:/^[右左]$/.test(throwing)?throwing:'',bat:/^[右左両]$/.test(batting)?batting:'',
@@ -243,7 +268,7 @@ async function loadOfficialData(){
   }
   const unique=[...new Map(results.map(p=>[p.profileLink,p])).values()];
   if(unique.length!==835){
-    $('dataStatus').textContent=`公式名簿の取得数は${unique.length}名でした。835名全員を確認できていないため開始を停止しています。通信状態を確認して再読み込みしてください。`;
+    $('dataStatus').textContent=`公式名簿の取得数は${unique.length}/835名でした。球団別の取得数：${Object.keys(OFFICIAL_TEAM_URLS).map(t=>t.replace(/(タイガース|ベイスターズ|ジャイアンツ|ドラゴンズ|カープ|スワローズ|ホークス|ファイターズ|バファローズ|イーグルス|ライオンズ|マリーンズ)/,'')+results.filter(p=>p.team===t).length).join('／')}。名簿データの形式または通信応答が一部欠けています。再読み込みで再取得してください。`;
     $('startBtn').disabled=true;return;
   }
   unique.sort((a,b)=>Object.keys(TEAMS).indexOf(a.team)-Object.keys(TEAMS).indexOf(b.team));
