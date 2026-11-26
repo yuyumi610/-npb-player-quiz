@@ -1,11 +1,25 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>プロ野球チップス風 NPB選手当てクイズ</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#f6f0df,#e9edf5);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;color:#222}.wrap{max-width:760px;margin:auto;padding:16px}.top{background:#b5121b;color:#fff;border-radius:18px 18px 0 0;padding:18px 20px;box-shadow:0 8px 24px #0002}.brand{font-weight:900;font-size:24px;letter-spacing:.04em}.sub{font-size:12px;opacity:.9;margin-top:4px}.panel{background:#fff;border-radius:0 0 18px 18px;padding:20px;box-shadow:0 8px 24px #0002}.screen{display:none}.screen.active{display:block}.row{display:flex;gap:10px;flex-wrap:wrap}.btn{border:0;border-radius:12px;padding:13px 16px;background:#222;color:#fff;font-weight:700;font-size:15px;cursor:pointer}.btn.red{background:#b5121b}.btn.gold{background:#b8860b}.btn.light{background:#eef0f4;color:#222}.btn:disabled{opacity:.45}.choice{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.choice button{padding:14px 8px;border:2px solid #ddd;background:#fff;border-radius:12px;font-weight:800}.choice button.sel{border-color:#b5121b;background:#fff4f4}.select{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:15px}.card{margin-top:14px;background:linear-gradient(150deg,#fff,#f4ead0);border:8px solid #d7b65a;border-radius:18px;box-shadow:0 10px 25px #0003;overflow:hidden}.cardhead{background:#b5121b;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;font-weight:900}.cardbody{padding:18px}.hint{border-left:5px solid #b5121b;background:#fff;border-radius:8px;padding:12px;margin:9px 0;box-shadow:0 2px 8px #0001}.hint small{display:block;color:#777;margin-bottom:3px}.qgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.qgrid button{border:1px solid #d8c89e;background:#fffaf0;border-radius:10px;padding:10px 8px;font-weight:700;color:#5b4516}.qgrid button:disabled{opacity:.4}.difficulty{border:1px solid #d8c89e;border-radius:11px;margin:9px 0;overflow:hidden}.difficulty-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;padding:13px 14px;border:0;background:#fff8e8;color:#5b4516;font-weight:900;font-size:15px;text-align:left;cursor:pointer}.difficulty-body{padding:10px;background:#fff}.difficulty-body .qgrid{margin:0}.giveup{background:#555;color:#fff}.qaLog{background:#f7f7f7;border-radius:10px;padding:10px;margin:8px 0;font-size:14px}.qaLog b{color:#8d1420}.answer{display:flex;gap:8px;margin-top:14px}.answer input{flex:1;min-width:0;padding:13px;border:2px solid #bbb;border-radius:10px;font-size:16px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat{background:#f1f3f6;border-radius:12px;padding:10px;text-align:center}.stat b{font-size:20px;display:block}.result{margin-top:12px;padding:14px;border-radius:12px;background:#fff5d8}.ok{background:#eaf8ee}.ng{background:#fff0f0}.tiny{font-size:12px;color:#666;line-height:1.6}.progress{height:8px;background:#eee;border-radius:99px;overflow:hidden;margin:10px 0}.bar{height:100%;background:#b5121b;width:0}.footer{margin-top:14px;font-size:11px;color:#666;text-align:center}@media(max-width:520px){.choice{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.wrap{padding:9px}}
+
+.player-card{margin-top:14px;border:7px solid #d5b35a;border-radius:16px;background:linear-gradient(145deg,#fffdf7,#f2e4bd);box-shadow:0 10px 26px #0003;overflow:hidden}
+.pc-top{background:#b5121b;color:#fff;padding:9px 12px;display:flex;justify-content:space-between;font-weight:900;letter-spacing:.04em;font-size:12px}
+.pc-name{font-size:25px;font-weight:1000;padding:13px 14px 3px;color:#241b0d}
+.pc-sub{padding:0 14px 12px;color:#6b5423;font-weight:800;font-size:13px}
+.pc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#d9c58f;border-top:1px solid #d9c58f;border-bottom:1px solid #d9c58f}
+.pc-stat{background:#fffdf7;padding:8px 5px;text-align:center}
+.pc-stat span{display:block;font-size:10px;color:#806c3c}
+.pc-stat b{font-size:16px;color:#21180a}
+.pc-details{padding:10px 13px}
+.pc-row{display:grid;grid-template-columns:95px 1fr;gap:8px;padding:5px 0;border-bottom:1px dotted #cdbd95;font-size:12px}
+.pc-row:last-child{border-bottom:0}
+.pc-row span{color:#7b6a46;font-weight:800}.pc-row b{color:#241b0d}
+@media(max-width:520px){.pc-stats{grid-template-columns:repeat(3,1fr)}.pc-row{grid-template-columns:82px 1fr}}
 </style></head><body><div class="wrap"><div class="top"><div class="brand">⚾ プロ野球チップス風</div><div class="sub">NPB 選手当てクイズ 2026</div></div><div class="panel">
-<section id="start" class="screen active"><h2>出題範囲を選択</h2><div class="choice"><button data-mode="all" class="sel">12球団</button><button data-mode="central">セ・リーグ</button><button data-mode="pacific">パ・リーグ</button></div><label>球団を限定する場合</label><select id="team" class="select"><option value="all">12球団すべて</option></select><p class="tiny">※2026年NPB公式「支配下選手一覧」を基礎データにします。開始時に公式データを読み込み、育成選手は除外します。</p><div id="dataStatus" class="tiny" style="margin:6px 0">公式データ確認中…</div><button id="startBtn" class="btn red" style="width:100%;margin-top:8px">クイズ開始</button></section>
+<section id="start" class="screen active"><h2>出題範囲を選択</h2><div class="choice"><button data-mode="all" class="sel">12球団</button><button data-mode="central">セ・リーグ</button><button data-mode="pacific">パ・リーグ</button></div><label>球団を限定する場合</label><select id="team" class="select"><option value="all">12球団すべて</option></select><p class="tiny">※NPB公式の2026年シーズン終了時・支配下選手835名を取得します。出身地・出身校・球歴・2026年一軍成績を初回に全員分読み込み、端末に保存します。育成選手は除外します。</p><div id="dataStatus" class="tiny" style="margin:6px 0">公式データ確認中…</div><button id="startBtn" class="btn red" style="width:100%;margin-top:8px">クイズ開始</button></section>
 <section id="game" class="screen"><div class="stats"><div class="stat"><span>得点</span><b id="score">0</b></div><div class="stat"><span>問題</span><b id="qno">1</b></div><div class="stat"><span>正解率</span><b id="rate">0%</b></div></div><div class="progress"><div id="bar" class="bar"></div></div><div class="card"><div class="cardhead"><span>？？？選手</span><span>シークレット</span></div><div class="cardbody"><h3 style="margin:4px 0">聞きたいことを質問しよう</h3><p class="tiny">難易度を選ぶと質問が開きます。同じ項目は1回だけ質問できます。</p><div id="questionButtons"></div><div id="hints"></div><div class="answer"><input id="answer" autocomplete="off" placeholder="選手名を入力"><button id="answerBtn" class="btn red">回答</button><button id="giveUpBtn" class="btn giveup">GIVE UP</button></div><div id="result"></div></div></div><div class="row" style="margin-top:12px"><button id="nextBtn" class="btn light" disabled>次の問題</button><button id="backBtn" class="btn light">設定へ戻る</button></div></section>
 <section id="finish" class="screen"><h2>結果</h2><div class="result ok"><div>最終得点</div><div style="font-size:34px;font-weight:900" id="finalScore">0</div><div id="finalText"></div></div><button id="againBtn" class="btn red" style="width:100%;margin-top:14px">もう一度遊ぶ</button></section>
-<div class="footer">データ基準：NPB公式 2026年度 支配下選手登録一覧　／　外部通信なし</div></div></div>
+<div class="footer">データ基準：NPB公式 2026年度 支配下選手登録一覧（835名）・個人年度別成績。出身地・出身校・経歴はNPB名鑑データベース（非公式）を補助参照します。初回起動時に835名分を取得し、この端末のブラウザ内データベースへ保存します。初回のみインターネット接続が必要です。出典で確認できない項目は推測せず「未登録」と表示します。</div></div></div>
 <script>
 const TEAMS={
 "阪神タイガース":"central","横浜DeNAベイスターズ":"central","読売ジャイアンツ":"central","中日ドラゴンズ":"central","広島東洋カープ":"central","東京ヤクルトスワローズ":"central","福岡ソフトバンクホークス":"pacific","北海道日本ハムファイターズ":"pacific","オリックス・バファローズ":"pacific","東北楽天ゴールデンイーグルス":"pacific","埼玉西武ライオンズ":"pacific","千葉ロッテマリーンズ":"pacific"};
@@ -61,84 +75,395 @@ const OFFICIAL_TEAM_URLS={
   '埼玉西武ライオンズ':'https://npb.jp/bis/teams/rst_l.html',
   '千葉ロッテマリーンズ':'https://npb.jp/bis/teams/rst_m.html'
 };
+// 出身地・出身校・経歴を補う選手名鑑データベース（非公式）。NPB公式の支配下名簿と照合して選手を対応付けます。
+const BIO_DIRECTORY_URLS=[
+ 'https://npb-meikan.jp/japanese-order-a/','https://npb-meikan.jp/japanese-order-ka/',
+ 'https://npb-meikan.jp/japanese-order-sa/','https://npb-meikan.jp/japanese-order-ta/',
+ 'https://npb-meikan.jp/japanese-order-na/','https://npb-meikan.jp/japanese-order-ha/',
+ 'https://npb-meikan.jp/japanese-order-ma/','https://npb-meikan.jp/japanese-order-ya/',
+ 'https://npb-meikan.jp/japanese-order-ra/','https://npb-meikan.jp/japanese-order-wa/'
+];
+const BIO_TEAM_ALIASES={
+ '阪神タイガース':['阪神'],'横浜DeNAベイスターズ':['横浜DeNA','横浜'],'読売ジャイアンツ':['読売','巨人'],
+ '中日ドラゴンズ':['中日'],'広島東洋カープ':['広島東洋','広島'],'東京ヤクルトスワローズ':['東京ヤクルト','ヤクルト'],
+ '福岡ソフトバンクホークス':['福岡ソフトバンク'],'北海道日本ハムファイターズ':['北海道日本ハム','日本ハム'],
+ 'オリックス・バファローズ':['オリックス'],'東北楽天ゴールデンイーグルス':['東北楽天'],
+ '埼玉西武ライオンズ':['埼玉西武','西武'],'千葉ロッテマリーンズ':['千葉ロッテ','ロッテ']
+};
 let officialLoaded=false;
 const PROXY='https://r.jina.ai/';
-async function fetchOfficial(url){const r=await fetch(PROXY+url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}
+async function fetchOfficial(url){
+  const cacheKey='npb2026:'+url;
+  try{
+    const cached=sessionStorage.getItem(cacheKey);
+    if(cached && cached.length>200) return cached;
+  }catch(e){}
+  let lastErr='fetch failed';
+  for(let i=0;i<3;i++){
+    try{
+      const target=(i===1)
+        ? PROXY+'http://'+url.replace(/^https?:\/\//,'')
+        : PROXY+url;
+      const r=await fetch(target,{cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const t=await r.text();
+      if(t && t.length>200){
+        try{sessionStorage.setItem(cacheKey,t);}catch(e){}
+        return t;
+      }
+    }catch(e){lastErr=String(e);}
+    await new Promise(r=>setTimeout(r,700));
+  }
+  throw new Error(lastErr);
+}
 function cleanName(s){return String(s||'').replace(/【.*?】/g,'').replace(/\[[^\]]*\]\([^)]*\)/g,'').replace(/\s+/g,' ').trim();}
 function parseOfficialRoster(md,team){
-  const out=[];let pos='';
+  const out=[];let pos='';let inDevelopment=false;
   const lines=md.split(/\r?\n/);
   for(const raw of lines){
     const line=raw.trim();
-    if(/^#+\s*(投手|捕手|内野手|外野手)\s*$/.test(line)) {pos=line.replace(/^#+\s*/,'');continue;}
-    if(line.includes('育成選手')) continue;
-    const m=line.match(/\[([^\]]+)\]\((https?:\/\/npb\.jp\/bis\/players\/[^)]+)\)/);
-    if(!m) continue;
-    const name=cleanName(m[1]);
-    if(!name || name==='選手一覧') continue;
-    const cols=line.split('|').map(x=>x.trim()).filter(Boolean);
-    if(cols.length<2) continue;
-    const num=cols[0].replace(/[^0-9A-Za-z]+/g,'')||cols[1].match(/^\d+$/)?.[0]||'';
-    const rest=cols.slice(1).join('|');
-    const profileLink=m[2];
-    const born=(rest.match(/(\d{4}\.\d{2}\.\d{2})/)||[])[1]||'';
-    const hw=(rest.match(/(\d{3})\s*\|\s*(\d{2,3})/)||[]);
-    const height=hw[1]||'';const weight=hw[2]||'';
-    const hands=(rest.match(/(右|左)\s*\|\s*(右|左|左右)/)||[]);
-    if(!out.some(x=>x.name===name)) out.push({team,league:TEAMS[team],pos:pos||'',num,birth:born,height,weight,throw: hands[1]||'',bat:hands[2]||'',name,profileLink,id:out.length+1,year:2026,career:team,reading:''});
+    // 備考欄の「育成選手から支配下選手へ移行」を見出しと誤認しない。
+    // NPB公式ページのセクション見出しだけで切り替える。
+    if(/^#{1,6}\s*■\s*育成選手\s*$/.test(line) || /^育成選手一覧\s*$/.test(line)){inDevelopment=true;continue;}
+    if(/^#{1,6}\s*■\s*支配下選手\s*$/.test(line) || /^支配下選手一覧\s*$/.test(line)){inDevelopment=false;continue;}
+    if(inDevelopment)continue;
+    const head=tableCells(line);
+    if(head[0]==='No.' || head[0]==='No'){
+      const pcol=head.find(x=>['投手','捕手','内野手','外野手'].includes(x));
+      if(pcol)pos=pcol;
+      continue;
+    }
+    const m=line.match(/\[([^\]]+)\]\(((?:https?:\/\/)?(?:www\.)?npb\.jp\/bis\/players\/[^)]+)\)/);
+    if(!m)continue;
+    const name=cleanName(m[1]).replace(/　/g,' ').replace(/\s+/g,' ').trim();
+    if(!name || name==='選手一覧')continue;
+    const cols=tableCells(line);
+    const linkCol=cols.findIndex(x=>x.includes(m[0]));
+    const num=(cols[0]||'').replace(/[^0-9A-Za-z]/g,'');
+    const birth=cols[linkCol+1]||'';
+    const height=cols[linkCol+2]||'';
+    const weight=cols[linkCol+3]||'';
+    const throwing=cols[linkCol+4]||'';
+    const batting=cols[linkCol+5]||'';
+    const profileLink=/^https?:\/\//.test(m[2])?m[2]:'https://npb.jp'+(m[2].startsWith('/')?m[2]:'/'+m[2]);
+    if(!out.some(x=>x.profileLink===profileLink))out.push({
+      team,league:TEAMS[team],pos:pos||'',num,birth,height,weight,
+      throw:/^[右左]$/.test(throwing)?throwing:'',bat:/^[右左両]$/.test(batting)?batting:'',
+      name,profileLink,id:out.length+1,year:2026,career:team,reading:''
+    });
   }
   return out;
 }
+async function loadBioDirectory(){
+  $('dataStatus').textContent='出身地・出身校の補完データを照合しています…';
+  const records=[];let idx=0;
+  const workers=Array.from({length:3},async()=>{
+    while(idx<BIO_DIRECTORY_URLS.length){
+      const url=BIO_DIRECTORY_URLS[idx++];
+      try{
+        const md=await fetchOfficial(url);
+        for(const line of md.split(/\r?\n/)){
+          const m=line.match(/\[([^\]]+)\]\((https?:\/\/npb-meikan\.jp\/\d+\/?)(?:\s+[^)]*)?\)/);
+          if(m)records.push({label:m[1],url:m[2]});
+        }
+      }catch(e){console.warn('選手名鑑索引取得失敗',url,e);}
+    }
+  });
+  await Promise.all(workers);
+  const used=new Set();let matched=0;
+  for(const p of P){
+    const pn=norm(p.name);
+    const aliases=(BIO_TEAM_ALIASES[p.team]||[]).map(norm);
+    const hit=records.find(r=>{
+      if(used.has(r.url))return false;
+      const label=norm(r.label);
+      return label.includes(pn)&&aliases.some(a=>label.endsWith(a));
+    });
+    if(hit){p.bioLink=hit.url;used.add(hit.url);matched++;}
+  }
+  $('dataStatus').textContent=`選手名鑑データ照合：${matched}/835名。プロフィールを読み込んでいます…`;
+  return matched;
+}
+function parseMeikanStats(md,p){
+  const lines=md.split(/\r?\n/);let batter=null,pitcher=null;
+  for(let i=0;i<lines.length;i++){
+    const head=tableCells(lines[i]);
+    if(head[0]!=='年度'||!head.includes('所属球団'))continue;
+    let row=null;
+    for(let j=i+1;j<lines.length;j++){
+      const cells=tableCells(lines[j]);
+      if(cells[0]==='2026')row=cells;
+      if(/^---/.test(lines[j])||(/^\s*20\d{2}\s*\|/.test(lines[j])&&cells[0]!=='2026'&&row)){
+        if(row)break;
+      }
+      if(/^## /.test(lines[j]))break;
+    }
+    if(row){if(head.includes('登板'))pitcher={head,row};if(head.includes('試合')&&head.includes('打席'))batter={head,row};}
+  }
+  const isPitcher=String(p.pos||'').includes('投手');
+  const chosen=isPitcher?pitcher:batter;
+  if(!chosen){p.has2026Stats=false;return;}
+  const obj={};chosen.head.forEach((h,i)=>obj[h]=chosen.row[i]??'');
+  p.has2026Stats=true;
+  const appearances=Number(isPitcher?obj['登板']:obj['試合']);
+  if(Number.isFinite(appearances)&&appearances===0)p.has2026Stats=false;
+  if(isPitcher){
+    p['登板']=obj['登板'];p['勝利']=obj['勝利'];p['敗北']=obj['敗北'];p['セーブ']=obj['セーブ'];
+    p['HP']=obj['HP'];p['投球回']=obj['投球回'];p['三振']=obj['三振'];p['防御率']=obj['防御率'];p['ホールド']=obj['H'];
+  }else{
+    p['試合']=obj['試合'];p['打席']=obj['打席'];p['安打']=obj['安打'];p['打率']=obj['打率'];
+    p['本塁打']=obj['本塁打'];p['打点']=obj['打点'];p['盗塁']=obj['盗塁'];
+  }
+}
+function parseMeikanProfile(md,p){
+  const field=(label)=>{const re=new RegExp('(?:^|\\n|\\|)\\s*'+label+'\\s*\\|\\s*([^\\n|]+)','m');const m=md.match(re);return m?m[1].trim():'';};
+  const v=field('出身地');if(v)p.birthplace=v;
+  const h=field('身長');if(h){const m=h.match(/(\d+)cm/);if(m)p.height=m[1];}
+  const w=field('体重');if(w){const m=w.match(/(\d+)kg/);if(m)p.weight=m[1];}
+  const b=field('生年月日');if(b)p.birth=b;
+  const hand=field('投打');if(hand){const m=hand.match(/(右|左)投(右|左|両)打/);if(m){p.throw=m[1];p.bat=m[2];}}
+  const d=field('プロ入り');if(d)p.draft=d.replace(/\s*（.*$/,'');
+  const c=field('経歴');if(c){p.educationCareer=c;parseCareerFields(p,c);}
+  const club=field('所属');if(club)p.clubHistory=club;
+  p.career=[p.educationCareer,p.clubHistory].filter(Boolean).join(' → ')||p.team;
+  parseMeikanStats(md,p);
+}
 async function loadOfficialData(){
   if(officialLoaded)return;
+  $('startBtn').disabled=true;
+  $('dataStatus').textContent='NPB公式12球団の支配下選手一覧を確認しています…';
   const results=[];
-  await Promise.all(Object.entries(OFFICIAL_TEAM_URLS).map(async([team,url])=>{
-    try{const md=await fetchOfficial(url);results.push(...parseOfficialRoster(md,team));}catch(e){console.warn('公式データ取得失敗',team,e);}
-  }));
-  if(results.length>=700){
-    results.sort((a,b)=>Object.keys(TEAMS).indexOf(a.team)-Object.keys(TEAMS).indexOf(b.team));
-    P=results;rebuildSurnameCounts();officialLoaded=true;
-    P.forEach(p=>{if(NAME_READINGS[p.name])p.reading=NAME_READINGS[p.name];});
-    $('dataStatus').textContent=`NPB公式データ読み込み済み：${P.length}人（支配下）`;
-  }else{
-    $('dataStatus').textContent=`公式データを読み込めなかったため内蔵データ（${P.length}人）で開始します。`;
+  for(const [team,url] of Object.entries(OFFICIAL_TEAM_URLS)){
+    try{
+      const md=await fetchOfficial(url);
+      const teamRows=parseOfficialRoster(md,team);
+      results.push(...teamRows);
+      $('dataStatus').textContent=`公式名簿確認中：${team} ${teamRows.length}名／累計 ${results.length}名`;
+    }catch(e){console.warn('公式データ取得失敗',team,e);}
   }
+  const unique=[...new Map(results.map(p=>[p.profileLink,p])).values()];
+  if(unique.length!==835){
+    $('dataStatus').textContent=`公式名簿の取得数は${unique.length}名でした。835名全員を確認できていないため開始を停止しています。通信状態を確認して再読み込みしてください。`;
+    $('startBtn').disabled=true;return;
+  }
+  unique.sort((a,b)=>Object.keys(TEAMS).indexOf(a.team)-Object.keys(TEAMS).indexOf(b.team));
+  P=unique;rebuildSurnameCounts();
+  P.forEach(p=>{if(NAME_READINGS[p.name])p.reading=NAME_READINGS[p.name];});
+  await loadBioDirectory();
+  $('dataStatus').textContent='支配下選手835名と出身地・経歴データを照合。全選手のプロフィール・2026年一軍成績を読み込んでいます…';
+  let done=0,failed=0;
+  let cursor=0;
+  const workers=Array.from({length:5},async()=>{
+    while(cursor<P.length){
+      const i=cursor++;
+      try{await ensureProfile(P[i]);if(!P[i].profileLoaded)failed++;}
+      catch(e){failed++;}
+      done++;
+      if(done%5===0||done===P.length){
+        $('dataStatus').textContent=`全選手データ取得中：${done}/835名（取得失敗 ${failed}名）`;
+      }
+    }
+  });
+  await Promise.all(workers);
+  let pending=P.filter(p=>!p.profileLoaded);
+  if(pending.length){
+    $('dataStatus').textContent=`未取得 ${pending.length}名を再試行しています…`;
+    let retryCursor=0;
+    const retryWorkers=Array.from({length:3},async()=>{
+      while(retryCursor<pending.length){
+        const p=pending[retryCursor++];
+        try{await ensureProfile(p);}catch(e){console.warn('プロフィール再取得失敗',p.name,e);}
+      }
+    });
+    await Promise.all(retryWorkers);
+  }
+  const loaded=P.filter(p=>p.profileLoaded).length;
+  const bio=P.filter(p=>p.bioLink).length;
+  const hometown=P.filter(p=>p.birthplace).length;
+  const schools=P.filter(p=>p.highSchool).length;
+  const universities=P.filter(p=>p.university).length;
+  const stats=P.filter(p=>p.has2026Stats!==undefined).length;
+  officialLoaded=true;
+  rebuildSurnameCounts();
+  $('dataStatus').textContent=`取得結果：プロフィール ${loaded}/835、出身地 ${hometown}名、高校 ${schools}名、大学 ${universities}名、2026年一軍成績判定 ${stats}名（名鑑照合 ${bio}名）。未登録は推測せず空欄扱いです。`;
+  $('startBtn').disabled=false;
+}
+
+function tableCells(line){
+  const a=String(line||'').split('|').map(x=>x.trim());
+  if(a.length && a[0]==='')a.shift();
+  if(a.length && a[a.length-1]==='')a.pop();
+  return a;
+}
+function parseCareerFields(p,career){
+  const c=String(career||'').replace(/\s+/g,' ').trim();
+  if(!c)return;
+  p.career=c;
+  const parts=c.split(/\s*[-－―–＞>]\s*/).map(x=>x.trim()).filter(Boolean);
+  const hs=parts.find(x=>/(高|高校|商|工|学園|学院|高専|高等)$/.test(x));
+  const un=parts.find(x=>/(大|大学|短大)$/.test(x) && !/(高校|高専)$/.test(x));
+  if(hs)p.highSchool=hs;
+  else if(parts.length>1 && !/(大|大学|社会人|会社|企業|クラブ|リーグ)/.test(parts[0]))p.highSchool=parts[0];
+  if(un)p.university=un;
+  if(un){const i=parts.indexOf(un);if(i>=0 && parts.length>i+1)p.postUniversity=parts.slice(i+1).join(' → ');}
+}
+function parse2026Stats(md,p){
+  const lines=md.split(/\r?\n/);
+  let found=false;
+  for(let i=0;i<lines.length;i++){
+    const head=tableCells(lines[i]);
+    if(head[0]!=='年度' || !head.includes('所属球団'))continue;
+    let j=i+1;
+    while(j<lines.length){
+      const cells=tableCells(lines[j]);
+      if(cells[0]==='2026')break;
+      if(/^\s*通\s*算/.test(lines[j]))break;
+      j++;
+    }
+    if(j>=lines.length || tableCells(lines[j])[0]!=='2026')continue;
+    let vals=tableCells(lines[j]);
+    // 投手の投球回はNPBページの表示幅により、独立した次行へ折り返されることがある。
+    // そのセルを欠落させると以降の成績が一列ずつずれるため、次の2026/通算行まで復元する。
+    for(let k=j+1;k<lines.length;k++){
+      const line=lines[k].trim();
+      if(!line || /^---/.test(line) || /^通\s*算/.test(line) || /^\d{4}\s*\|/.test(line))break;
+      if(line.includes('|')){
+        const extra=tableCells(line);
+        vals.push(...extra.filter(x=>x!==''));
+      }else{
+        vals.push(line);
+      }
+    }
+    const obj={};head.forEach((h,k)=>obj[h]=vals[k]??'');
+    if(head.includes('登板')){
+      const appeared=Number(obj['登板'])>0;
+      if(String(p.pos||'').includes('投手')&&appeared)found=true;
+      p.has2026Stats=appeared;
+      p['登板']=obj['登板'];p['勝利']=obj['勝利'];p['敗北']=obj['敗北'];
+      p['セーブ']=obj['セーブ'];p['HP']=obj['HP'];p['投球回']=obj['投球回'];
+      p['三振']=obj['三振'];p['防御率']=obj['防御率'];p['ホールド']=obj['H'];
+    }
+    if(head.includes('打席')){
+      const appeared=Number(obj['試合'])>0;
+      if(!String(p.pos||'').includes('投手')){if(appeared)found=true;p.has2026Stats=appeared;}
+      p['試合']=obj['試合'];p['打席']=obj['打席'];p['安打']=obj['安打'];
+      p['打率']=obj['打率'];p['本塁打']=obj['本塁打'];p['打点']=obj['打点'];p['盗塁']=obj['盗塁'];
+    }
+    i=j;
+  }
+  if(!found)p.has2026Stats=false;
+}
+
+const PROFILE_DB_NAME='npb-quiz-2026-profile-cache-v2';
+let profileDbPromise=null;
+function openProfileDb(){
+  if(!('indexedDB' in window))return Promise.resolve(null);
+  if(profileDbPromise)return profileDbPromise;
+  profileDbPromise=new Promise(resolve=>{
+    try{
+      const req=indexedDB.open(PROFILE_DB_NAME,1);
+      req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('profiles'))db.createObjectStore('profiles',{keyPath:'url'});};
+      req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);
+    }catch(e){resolve(null);}
+  });
+  return profileDbPromise;
+}
+async function readProfileCache(url){
+  const db=await openProfileDb();if(!db)return null;
+  return new Promise(resolve=>{try{const r=db.transaction('profiles','readonly').objectStore('profiles').get(url);r.onsuccess=()=>resolve(r.result?.data||null);r.onerror=()=>resolve(null);}catch(e){resolve(null);}});
+}
+async function writeProfileCache(url,data){
+  const db=await openProfileDb();if(!db)return;
+  await new Promise(resolve=>{try{const r=db.transaction('profiles','readwrite').objectStore('profiles').put({url,data});r.onsuccess=()=>resolve();r.onerror=()=>resolve();}catch(e){resolve();}});
+}
+function extractClubHistory(md,currentTeam){
+  const clubs=[];
+  for(const line of md.split(/\r?\n/)){
+    if(!/^\s*20\d{2}\s*\|/.test(line))continue;
+    const cells=tableCells(line);const club=cells[1]||'';
+    if(club && !clubs.includes(club))clubs.push(club);
+  }
+  if(currentTeam && !clubs.includes(currentTeam))clubs.push(currentTeam);
+  return clubs.join(' → ');
 }
 async function ensureProfile(p){
   if(p.profileLoaded)return p;
   if(!p.profileLink)return p;
   try{
-    const md=await fetchOfficial(p.profileLink);
-    p.profileText=md;p.profileLoaded=true;
-    const reading=(md.match(new RegExp(p.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s+([^\n|]+)'))||[])[1]||'';
-    const rm=md.match(/(?:\n|\|)\s*([ぁ-んァ-ヶー・]+)\s*(?:\n|\|)/);
-    p.reading=reading.replace(/[・]/g,' ').trim()||rm?.[1]||p.reading;
-    const pm=md.match(/ポジション\s*\|\s*([^\n]+)/);if(pm)p.pos=pm[1].trim();
-    const hm=md.match(/身長\s*\/\s*体重\s*\|\s*([^\n]+)/);if(hm){const a=hm[1].match(/(\d+)cm\s*\/\s*(\d+)kg/);if(a){p.height=a[1];p.weight=a[2];}}
-    const bm=md.match(/生年月日\s*\|\s*([^\n]+)/);if(bm)p.birth=bm[1].trim();
-    const em=md.match(/投打\s*\|\s*([^\n]+)/);if(em){const a=em[1].match(/(右|左)投(右|左)打/);if(a){p.throw=a[1];p.bat=a[2];}}
-    const cm=md.match(/経歴\s*\|\s*([^\n]+)/);if(cm)p.careerAfterUniversity=cm[1].trim();
-    const dm=md.match(/ドラフト\s*\|\s*([^\n]+)/);if(dm)p.draft=dm[1].trim();
-    const title=md.match(/タイトル\s*\|\s*([^\n]+)/);if(title)p.title=title[1].trim();
-    const lines=md.split(/\r?\n/);
-    const idx=lines.findIndex(x=>/\|\s*2026\s*\|/.test(x));
-    if(idx>=0){
-      const row=lines[idx].split('|').map(x=>x.trim()).filter(Boolean);
-      const header=idx>0?lines[idx-1].split('|').map(x=>x.trim()).filter(Boolean):[];
-      const val={};header.forEach((h,i)=>{val[h]=row[i]||'';});
-      Object.assign(p,val);
+    const cached=await readProfileCache(p.profileLink);
+    if(cached){Object.assign(p,cached);p.profileLoaded=true;return p;}
+    let md='';
+    if(p.bioLink){
+      try{md=await fetchOfficial(p.bioLink);parseMeikanProfile(md,p);}catch(e){console.warn('選手名鑑プロフィール取得失敗',p.name,e);}
     }
+    if(!md || p.has2026Stats===undefined || !p.birthplace){
+      try{
+        const officialMd=await fetchOfficial(p.profileLink);
+        if(!md)md=officialMd;
+        p.profileText=officialMd;
+      }catch(e){
+        if(!md)throw e;
+        console.warn('NPB公式プロフィール補完失敗（名鑑データは保持）',p.name,e);
+      }
+    }
+    p.profileLoaded=true;
+    const field=(label)=>{
+      const re=new RegExp('(?:^|\\n|\\|)\\s*'+label+'\\s*\\|\\s*([^\\n|]+)','m');
+      const m=md.match(re);return m?m[1].replace(/\s+/g,' ').trim():'';
+    };
+    const reading=field('フリガナ')||field('読み')||((md.match(/(?:^|\n)\s*[*-]?\s*([ぁ-ゖァ-ヺー]+[・･][ぁ-ゖァ-ヺー]+)\s*(?:\n|$)/m)||[])[1]||'').replace(/[・･]/g,' ');
+    if(reading)p.reading=reading;
+    const pos=field('ポジション');if(pos&&!p.pos)p.pos=pos;
+    const hw=field('身長\\s*／\\s*体重')||field('身長\\s*\\/\\s*体重');
+    if(hw){const a=hw.match(/(\d+)cm\s*／?\s*(\d+)kg/);if(a){p.height=a[1];p.weight=a[2];}}
+    const birth=field('生年月日');if(birth&&!p.birth)p.birth=birth;
+    const hand=field('投打');if(hand){const a=hand.match(/(右|左)投(右|左|両)打/);if(a){p.throw=p.throw||a[1];p.bat=p.bat||a[2];}}
+    const career=field('経歴');if(career&&!p.educationCareer){p.educationCareer=career;parseCareerFields(p,career);}
+    const draft=field('ドラフト');if(draft&&!p.draft)p.draft=draft;
+    const title=field('タイトル');if(title)p.title=title;
+    if(!p.height||!p.weight){const a=md.match(/(\d{3})cm\s*[／/]\s*(\d{2,3})kg/);if(a){p.height=p.height||a[1];p.weight=p.weight||a[2];}}
+    if(!p.birth){const a=md.match(/(19|20)\d{2}年\d{1,2}月\d{1,2}日/);if(a)p.birth=a[0];}
+    if(!p.throw||!p.bat){const a=md.match(/(右|左)投(右|左|両)打/);if(a){p.throw=p.throw||a[1];p.bat=p.bat||a[2];}}
+    if(!p.clubHistory){p.clubHistory=extractClubHistory(md,p.team);}
+    if(!p.career)p.career=[p.educationCareer,p.clubHistory].filter(Boolean).join(' → ')||p.team;
+    // 名鑑ページで成績を取得できなかった選手だけ、NPB公式個人年度別成績ページの行を補完。
+    // 名鑑側は同一年度の球団別行と合計行が並ぶ場合があるため、取得済みの値を上書きしない。
+    if(p.has2026Stats===undefined)parse2026Stats(md,p);
+    // 出身地はNPB個人年度別成績ページに項目がないため、記載がある場合だけ採用する。
+    const birthplace=field('出身地')||field('出身');if(birthplace&&!p.birthplace)p.birthplace=birthplace;
+    const cacheData={};
+    ['reading','pos','height','weight','birth','throw','bat','career','educationCareer','highSchool','university','postUniversity','draft','title','clubHistory','birthplace','has2026Stats','登板','勝利','敗北','セーブ','HP','投球回','三振','防御率','ホールド','試合','打席','安打','打率','本塁打','打点','盗塁','profileLoaded'].forEach(k=>{if(p[k]!==undefined)cacheData[k]=p[k];});
+    await writeProfileCache(p.profileLink,cacheData);
   }catch(e){console.warn('選手プロフィール取得失敗',p.name,e);}
   return p;
 }
+
 function profileCard(p){
-  const items=[
-    ['所属球団',p.team],['守備位置',p.pos],['背番号',p.num],['投打',(p.throw&&p.bat)?`${p.throw}投${p.bat}打`:''||'未登録'],
-    ['身長',(p.height?`${p.height}cm`:'未登録')],['体重',(p.weight?`${p.weight}kg`:'未登録')],['生年月日',p.birth||'未登録'],
-    ['経歴',p.careerAfterUniversity||'未登録'],['ドラフト',p.draft||'未登録'],['球歴',p.career||p.team]
+  const isPitcher=String(p.pos||'').includes('投手');
+  const noStats=p.has2026Stats===false?'2026年一軍公式戦出場なし':'';
+  const stats=isPitcher
+    ? [['登板',p['登板']],['投球回',p['投球回']],['勝利',p['勝利']],['敗戦',p['敗北']],['セーブ',p['セーブ']],['HP',p['HP']],['防御率',p['防御率']],['奪三振',p['三振']]]
+    : [['試合',p['試合']],['打席',p['打席']],['安打',p['安打']],['打率',p['打率']],['本塁打',p['本塁打']],['打点',p['打点']],['盗塁',p['盗塁']]];
+  const detail=[
+    ['所属球団',p.team],['守備位置',p.pos],['背番号',p.num],
+    ['投打',(p.throw&&p.bat)?`${p.throw}投${p.bat}打`:'未登録'],
+    ['身長',p.height?`${p.height}cm`:'未登録'],['体重',p.weight?`${p.weight}kg`:'未登録'],
+    ['生年月日',p.birth||'未登録'],['出身地',p.birthplace||'未登録'],
+    ['出身高校',p.highSchool||'未登録'],['大学',p.university||'未登録'],
+    ['大学卒業後',p.postUniversity||'未登録'],['ドラフト',p.draft||'未登録'],
+    ['タイトル',p.title||'なし'],['球歴',p.career||p.team]
   ];
-  return `<div class="result ok" style="text-align:left"><div style="font-size:20px;font-weight:900;margin-bottom:8px">⚾ ${p.name}</div>${items.map(x=>`<div style="padding:3px 0"><b>${x[0]}：</b>${x[1]}</div>`).join('')}</div>`;
+  const statRows=p.has2026Stats===false?`<div class="pc-stat" style="grid-column:1/-1"><span>2026年一軍成績</span><b style="font-size:13px">一軍公式戦出場なし</b></div>`:stats.map(([k,v])=>`<div class="pc-stat"><span>${k}</span><b>${v!==undefined&&v!==''?v:'--'}</b></div>`).join('');
+  const detailRows=detail.map(([k,v])=>`<div class="pc-row"><span>${k}</span><b>${htmlEscape(v)}</b></div>`).join('');
+  return `<div class="player-card">
+    <div class="pc-top"><span>⚾ NPB PLAYER CARD</span><span>2026</span></div>
+    <div class="pc-name">${htmlEscape(p.name)}</div>
+    <div class="pc-sub">${htmlEscape(p.team)}　${htmlEscape(p.pos)}　#${htmlEscape(p.num)}</div>
+    <div class="pc-stats">${statRows}</div>
+    <div class="pc-details">${detailRows}</div>
+  </div>`;
 }
+function htmlEscape(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 let mode='all', current=null, hints=0, score=0, q=0, correct=0, answered=false, pool=[], asked=new Set();
 const $=id=>document.getElementById(id); const show=id=>document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
@@ -152,7 +477,7 @@ const normalizedSurname=s=>norm(surnameOf(s));
 function refreshTeams(){let sel=$('team');sel.innerHTML='<option value="all">12球団すべて</option>';Object.keys(TEAMS).forEach(t=>{let o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});}
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');mode=b.dataset.mode;});
 function makePool(){let t=$('team').value;pool=P.filter(p=>(mode==='all'||p.league===mode)&&(t==='all'||p.team===t));pool.sort(()=>Math.random()-.5);}
-async function start(){await loadOfficialData();makePool();if(!pool.length){alert('該当する選手がいません');return}score=0;q=0;correct=0;show('game');nextQuestion();}
+async function start(){await loadOfficialData();if(!officialLoaded){alert('NPB公式の支配下選手835名を確認できていません。通信状態を確認して再読み込みしてください。');return}makePool();if(!pool.length){alert('該当する選手がいません');return}score=0;q=0;correct=0;show('game');nextQuestion();}
 function nextQuestion(){if(q>=20||!pool.length){finish();return}current=pool.pop();q++;hints=0;asked=new Set();answered=false;$('qno').textContent=q;$('score').textContent=score;$('rate').textContent=Math.round(correct/Math.max(1,q-1)*100)+'%';$('bar').style.width=((q-1)/20*100)+'%';$('result').innerHTML='';$('hints').innerHTML='';openedDifficulty={hard:false,normal:false,easy:false};$('nextBtn').disabled=true;$('answer').value='';$('answer').disabled=false;$('answerBtn').disabled=false;$('giveUpBtn').disabled=false;renderHints();renderQuestionButtons();}
 const HARD_DEFS=[
  ['pos','守備位置は？'],['birthplace','出身地は？'],['draft','ドラフト順位は？'],
@@ -213,13 +538,22 @@ async function answerFor(k){await ensureProfile(current);
   games:current['試合']||current.games,plateAppearances:current['打席']||current.plateAppearances,hits:current['安打']||current.hits,batting:current['打率']||current.batting,homeRuns:current['本塁打']||current.homeRuns,RBI:current['打点']||current.RBI,steals:current['盗塁']||current.steals,
   appearances:current['登板']||current.appearances,innings:current['投球回']||current.innings,wins:current['勝利']||current.wins,losses:current['敗北']||current.losses,saves:current['セーブ']||current.saves,holdsPlus:current['HP']||current.holdsPlus,ERA:current['防御率']||current.ERA,strikeouts:current['三振']||current.strikeouts
  };
- if(k in profileStats)return profileStats[k]!==undefined&&profileStats[k]!==''?String(profileStats[k]):'2026年一軍公式戦出場なし';
+ if(k in profileStats){if(profileStats[k]!==undefined&&profileStats[k]!=='')return String(profileStats[k]);return current.has2026Stats?'成績データ未取得':'2026年一軍公式戦出場なし';}
 
  const known={
   league:current.league==='central'?'セ・リーグ':'パ・リーグ',
   team:current.team,
   career:current.career || current.team,
+  highSchool:current.highSchool||'未登録',
+  university:current.university||'未登録',
+  careerAfterUniversity:current.postUniversity||current.careerAfterUniversity||'未登録',
+  birthplace:current.birthplace||'未登録',
+  title:current.title||'未登録',
   pos:current.pos,
+  height:current.height?current.height+'cm':'未登録',
+  weight:current.weight?current.weight+'kg':'未登録',
+  birthday:current.birth||'未登録',
+  hand:(current.throw&&current.bat)?current.throw+'投'+current.bat+'打':'未登録',
   num:'背番号は'+current.num+'です。',
   firstCharacter:'名前の最初の文字は「'+current.name.replace(/\\s/g,'')[0]+'」です。'
  };
