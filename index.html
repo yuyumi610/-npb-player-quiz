@@ -93,7 +93,7 @@ const BIO_TEAM_ALIASES={
 let officialLoaded=false;
 const PROXY='https://r.jina.ai/';
 async function fetchOfficial(url){
-  const cacheKey='npb2026:v3:'+url;
+  const cacheKey='npb2026:v4:'+url;
   try{
     const cached=sessionStorage.getItem(cacheKey);
     if(cached && cached.length>200) return cached;
@@ -121,62 +121,89 @@ async function fetchOfficial(url){
   }
   throw new Error(lastErr);
 }
+// 球団別名簿は一般プロフィール取得と分離し、NPB公式の2026年支配下名簿であることと
+// 選手行が十分に取れていることを確認できた応答だけを採用する。
+async function fetchRosterOfficial(url,team){
+  const cacheKey='npb2026:roster:v5:'+url;
+  try{const cached=sessionStorage.getItem(cacheKey);if(cached){const n=parseOfficialRoster(cached,team).length;if(n>=20)return cached;sessionStorage.removeItem(cacheKey);}}catch(e){}
+  const path=url.replace(/^https?:\/\//,'');
+  const suffix=path.replace(/^npb\.jp\//,'');
+  const candidates=[
+    'https://r.jina.ai/http://'+path,
+    'https://r.jina.ai/http://www.npb.or.jp/'+suffix,
+    'https://r.jina.ai/https://'+path,
+    'https://r.jina.ai/https://www.npb.or.jp/'+suffix
+  ];
+  let errors=[];
+  for(const target of candidates){
+    try{
+      const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),25000);
+      const r=await fetch(target,{cache:'no-store',signal:controller.signal});clearTimeout(timer);
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const body=await r.text();
+      if(body.length<1500 || !/2026年度/.test(body) || !/支配下選手/.test(body))throw new Error('公式名簿の本文を確認できません');
+      const count=parseOfficialRoster(body,team).length;
+      if(count<20)throw new Error('選手行の抽出数が少なすぎます：'+count);
+      try{sessionStorage.setItem(cacheKey,body);}catch(e){}
+      return body;
+    }catch(e){errors.push(String(e));}
+  }
+  throw new Error(team+' 名簿取得失敗：'+errors.join(' / '));
+}
+
 function cleanName(s){return String(s||'').replace(/【.*?】/g,'').replace(/\[[^\]]*\]\([^)]*\)/g,'').replace(/\s+/g,' ').trim();}
 function parseOfficialRoster(md,team){
   const out=[];let pos='';let inDevelopment=false;
   const lines=String(md||'').split(/\r?\n/);
-  // Jina Readerの出力形式は、通常のMarkdownリンク・参照リンク・HTMLリンクで
-  // 表記が揺れることがあるため、リンク定義も先に集めておく。
   const refLinks={};
   for(const raw of lines){
-    const m=raw.match(/^\s*\[([^\]]+)\]:\s*<?(https?:\/\/[^ >]+)>?/i);
+    const m=raw.match(/^\s*\[([^\]]+)\]:\s*<?(https?:\/\/[^ >]+|\/[^ >]+)>?/i);
     if(m)refLinks[m[1]]=m[2].replace(/[)>]+$/,'');
   }
   for(const raw of lines){
     const line=raw.trim();
-    if(/^#{1,6}\s*■\s*育成選手\s*$/.test(line) || /^育成選手一覧\s*$/.test(line)){inDevelopment=true;continue;}
-    if(/^#{1,6}\s*■\s*支配下選手\s*$/.test(line) || /^支配下選手一覧\s*$/.test(line)){inDevelopment=false;continue;}
+    if(/^#{1,6}\s*■\s*育成選手\s*$/.test(line) || /^育成選手一覧\s*$/.test(line)){inDevelopment=true;pos='';continue;}
+    if(/^#{1,6}\s*■\s*支配下選手\s*$/.test(line) || /^支配下選手一覧\s*$/.test(line)){inDevelopment=false;pos='';continue;}
     if(inDevelopment)continue;
-    const head=tableCells(line);
-    if(head[0]==='No.' || head[0]==='No'){
-      const pcol=head.find(x=>['投手','捕手','内野手','外野手'].includes(x));
-      if(pcol)pos=pcol;
+    const cols=tableCells(line);
+    if(cols[0]==='No.' || cols[0]==='No'){
+      pos=cols.find(x=>['投手','捕手','内野手','外野手'].includes(x))||'';
       continue;
     }
-    // Markdown inline link / reference link / HTML anchor のいずれにも対応
-    let name='',href='';
-    let lm=line.match(/\[([^\]]+)\]\(([^)\s]+)(?:\s+[^)]*)?\)/);
+    // 2026年NPBの一覧は、球団や取得経路によって選手名リンクがMarkdownから
+    // 落ちることがある。リンクがなくても、守備位置ヘッダー直下の行から
+    // 背番号・選手名・プロフィール基本情報を抽出する。
+    if(!pos || cols.length<2 || !/^\d{1,3}$/.test(String(cols[0]).trim()))continue;
+    let nameCell=cols[1]||'';let name='',href='';
+    let lm=nameCell.match(/\[([^\]]+)\]\(([^)\s]+)(?:\s+[^)]*)?\)/);
     if(lm){name=lm[1];href=lm[2];}
     if(!href){
-      lm=line.match(/\[([^\]]+)\]\[([^\]]*)\]/);
+      lm=nameCell.match(/\[([^\]]+)\]\[([^\]]*)\]/);
       if(lm){name=lm[1];href=refLinks[lm[2]||lm[1]]||'';}
     }
     if(!href){
       lm=line.match(/<a\s+[^>]*href=["']([^"']*\/bis\/players\/[^"']*)["'][^>]*>(.*?)<\/a>/i);
       if(lm){href=lm[1];name=lm[2].replace(/<[^>]*>/g,'');}
     }
-    // NPBの球団ページは、Jina Reader経由で絶対URLと相対URLが混在する。
-    // 以前は npb.jp を含む絶対URLだけ許可していたため、相対リンクの球団が丸ごと0名になっていた。
-    if(!href || !/(?:^|\/)bis\/players\//i.test(href) && !/npb\.jp\/bis\/players\//i.test(href))continue;
+    if(!name)name=nameCell.replace(/\[[^\]]+\]\[[^\]]*\]/g,'').replace(/<[^>]*>/g,'');
+    name=cleanName(name).replace(/　/g,' ').replace(/\s+/g,' ').trim();
+    if(!name || /^(監督|コーチ|選手名|投手|捕手|内野手|外野手)$/.test(name))continue;
     let profileLink='';
-    try{profileLink=new URL(href,'https://npb.jp/').href;}catch(e){continue;}
-    if(!/^https?:\/\/(?:www\.)?npb\.jp\/bis\/players\//i.test(profileLink))continue;
-    name=cleanName(name).replace(/^\d+\s*[†|｜]\s*/,'').replace(/　/g,' ').replace(/\s+/g,' ').trim();
-    if(!name || name==='選手一覧')continue;
-    const cols=tableCells(line);
-    let linkCol=cols.findIndex(x=>x.includes(name));
-    if(linkCol<0)linkCol=1;
-    const num=(cols[0]||'').replace(/[^0-9A-Za-z]/g,'');
-    const birth=cols[linkCol+1]||'';
-    const height=cols[linkCol+2]||'';
-    const weight=cols[linkCol+3]||'';
-    const throwing=cols[linkCol+4]||'';
-    const batting=cols[linkCol+5]||'';
-    profileLink=profileLink.replace(/[?#].*$/,'');
-    if(!out.some(x=>x.profileLink===profileLink))out.push({
-      team,league:TEAMS[team],pos:pos||'',num,birth,height,weight,
-      throw:/^[右左]$/.test(throwing)?throwing:'',bat:/^[右左両]$/.test(batting)?batting:'',
-      name,profileLink,id:out.length+1,year:2026,career:team,reading:''
+    if(href){
+      try{
+        const u=new URL(href,'https://npb.jp/');
+        if(/(?:^|\.)npb\.jp$/i.test(u.hostname) && /\/bis\/players\//i.test(u.pathname))profileLink=u.href.replace(/[?#].*$/,'');
+      }catch(e){}
+    }
+    const birth=cols[2]||'',height=cols[3]||'',weight=cols[4]||'';
+    const throwing=cols[5]||'',batting=cols[6]||'';
+    const num=String(cols[0]).trim();
+    const key=team+'|'+num+'|'+norm(name);
+    if(!out.some(x=>x._rosterKey===key))out.push({
+      team,league:TEAMS[team],pos,num,birth,height,weight,
+      throw:/^[右左]$/.test(throwing)?throwing:'',
+      bat:/^[右左両]+$/.test(batting)?batting:'',
+      name,profileLink,id:out.length+1,year:2026,career:team,reading:'',_rosterKey:key
     });
   }
   return out;
@@ -262,13 +289,13 @@ async function loadOfficialData(){
   const results=[];
   for(const [team,url] of Object.entries(OFFICIAL_TEAM_URLS)){
     try{
-      const md=await fetchOfficial(url);
+      const md=await fetchRosterOfficial(url,team);
       const teamRows=parseOfficialRoster(md,team);
       results.push(...teamRows);
       $('dataStatus').textContent=`公式名簿確認中：${team} ${teamRows.length}名／累計 ${results.length}名`;
-    }catch(e){console.warn('公式データ取得失敗',team,e);}
+    }catch(e){console.warn('公式データ取得失敗',team,e);results.push(...[]);$('dataStatus').textContent=`公式名簿取得失敗：${team}。${String(e).slice(0,180)}`;}
   }
-  const unique=[...new Map(results.map(p=>[p.profileLink,p])).values()];
+  const unique=[...new Map(results.map(p=>[p.profileLink||p._rosterKey||(`${p.team}|${p.num}|${norm(p.name)}`),p])).values()];
   if(unique.length!==835){
     $('dataStatus').textContent=`公式名簿の取得数は${unique.length}/835名でした。球団別の取得数：${Object.keys(OFFICIAL_TEAM_URLS).map(t=>t.replace(/(タイガース|ベイスターズ|ジャイアンツ|ドラゴンズ|カープ|スワローズ|ホークス|ファイターズ|バファローズ|イーグルス|ライオンズ|マリーンズ)/,'')+results.filter(p=>p.team===t).length).join('／')}。名簿データの形式または通信応答が一部欠けています。再読み込みで再取得してください。`;
     $('startBtn').disabled=true;return;
@@ -415,15 +442,15 @@ function extractClubHistory(md,currentTeam){
 }
 async function ensureProfile(p){
   if(p.profileLoaded)return p;
-  if(!p.profileLink)return p;
+  if(!p.profileLink&&!p.bioLink)return p;
   try{
-    const cached=await readProfileCache(p.profileLink);
+    const cached=p.profileLink?await readProfileCache(p.profileLink):null;
     if(cached){Object.assign(p,cached);p.profileLoaded=true;return p;}
     let md='';
     if(p.bioLink){
       try{md=await fetchOfficial(p.bioLink);parseMeikanProfile(md,p);}catch(e){console.warn('選手名鑑プロフィール取得失敗',p.name,e);}
     }
-    if(!md || p.has2026Stats===undefined || !p.birthplace){
+    if((!md || p.has2026Stats===undefined || !p.birthplace) && p.profileLink){
       try{
         const officialMd=await fetchOfficial(p.profileLink);
         if(!md)md=officialMd;
@@ -460,7 +487,7 @@ async function ensureProfile(p){
     const birthplace=field('出身地')||field('出身');if(birthplace&&!p.birthplace)p.birthplace=birthplace;
     const cacheData={};
     ['reading','pos','height','weight','birth','throw','bat','career','educationCareer','highSchool','university','postUniversity','draft','title','clubHistory','birthplace','has2026Stats','登板','勝利','敗北','セーブ','HP','投球回','三振','防御率','ホールド','試合','打席','安打','打率','本塁打','打点','盗塁','profileLoaded'].forEach(k=>{if(p[k]!==undefined)cacheData[k]=p[k];});
-    await writeProfileCache(p.profileLink,cacheData);
+    if(p.profileLink)await writeProfileCache(p.profileLink,cacheData);
   }catch(e){console.warn('選手プロフィール取得失敗',p.name,e);}
   return p;
 }
