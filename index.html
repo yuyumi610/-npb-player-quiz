@@ -142,7 +142,22 @@ async function answerFor(k){
    return '2026年一軍公式戦出場なし';
  }
  const known={
-  league:current.league==='central'?'セ・リーグ':'パ・リーグ',team:current.team,career:current.career||current.team,highSchool:current.highSchool||'未登録',university:current.university||'未登録',careerAfterUniversity:current.postUniversity||'未登録',birthplace:current.birthplace||'未登録',title:'未登録',pos:current.pos,num:'背番号は'+current.num+'です。',firstCharacter:'名前の最初の文字は「'+current.name.replace(/\s/g,'')[0]+'」です。'
+  league:current.league==='central'?'セ・リーグ':'パ・リーグ',
+  team:current.team,
+  career:current.career||current.team,
+  highSchool:current.highSchool||'未登録',
+  university:current.university||'未登録',
+  careerAfterUniversity:current.postUniversity||'未登録',
+  birthplace:current.birthplace||'未登録',
+  title:'未登録',
+  pos:current.pos,
+  num:'背番号は'+current.num+'です。',
+  firstCharacter:'名前の最初の文字は「'+current.name.replace(/\s/g,'')[0]+'」です。',
+  height:current.height!=null&&current.height!=='' ? current.height+'cm' : '未登録',
+  weight:current.weight!=null&&current.weight!=='' ? current.weight+'kg' : '未登録',
+  birthday:current.birth||'未登録',
+  hand:current.throwsBats||'未登録',
+  draft:current.draft||'未登録'
  };
  if(k in known)return known[k];
  const labels=Object.fromEntries([...HARD_DEFS,...NORMAL_COMMON,...BATTER_DEFS,...PITCHER_DEFS].map(x=>[x[0],x[1]]));
