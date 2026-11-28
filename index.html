@@ -188,10 +188,18 @@ async function answer(){
    $('result').innerHTML='<div class="result ng">「'+surnameOf(current.name)+'」だけでは特定できません。<b>フルネームで答えてください。</b></div>';
    $('answer').focus();return;
  }
- answered=true;
- if(ok){let pts=Math.max(10,100-hints*15);score+=pts;correct++;$('result').innerHTML=`<div class="result ok">正解！ <b>${current.name}</b><br>+${pts}点</div>`;setTimeout(()=>{$('result').insertAdjacentHTML('beforeend',profileCard(current));},0);}
- else{$('result').innerHTML=`<div class="result ng">不正解。正解は <b>${current.name}</b></div>`;setTimeout(()=>{$('result').insertAdjacentHTML('beforeend',profileCard(current));},0);}
- $('score').textContent=score;$('rate').textContent=Math.round(correct/q*100)+'%';$('answer').disabled=true;$('answerBtn').disabled=true;$('giveUpBtn').disabled=true;$('nextBtn').disabled=false;
+ if(ok){
+  answered=true;
+  let pts=Math.max(10,100-hints*15);score+=pts;correct++;
+  $('result').innerHTML=`<div class="result ok">正解！ <b>${current.name}</b><br>+${pts}点</div>`;
+  setTimeout(()=>{$('result').insertAdjacentHTML('beforeend',profileCard(current));},0);
+  $('answer').disabled=true;$('answerBtn').disabled=true;$('giveUpBtn').disabled=true;$('nextBtn').disabled=false;
+}else{
+  // 不正解でも回答状態にはせず、同じ問題に何度でも挑戦できるようにする
+  $('result').innerHTML=`<div class="result ng">不正解です。もう一度答えてみよう！</div>`;
+  $('answer').select();
+}
+ $('score').textContent=score;$('rate').textContent=Math.round(correct/q*100)+'%';
 }
 async function giveUp(){
  if(answered)return;await ensureProfile(current);
